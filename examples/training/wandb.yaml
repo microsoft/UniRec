@@ -1,0 +1,26 @@
+# configuration for wandb sweep that is used in wandb_start.sh
+command: 
+    - bash
+    - ./train_ml100k_with_wandb.sh  # path to your training script
+name: sasrec-ml100k-parameter-tuning    # the project name
+method: bayes   # random / grid / bayes
+metric:
+    goal: maximize
+    name: test/test_ndcg@10     # the metric to be monitored
+parameters:
+    n_layers:
+        values: [1,2,4]
+    embedding_size:
+        values: [32,64,128]
+    hidden_dropout_prob:
+        min: 0.2
+        max: 0.6
+    attn_dropout_prob:
+        min: 0.1
+        max: 0.5
+    learning_rate:
+        min: 0.00001
+        max: 0.0009
+    grad_clip_value:
+        min: 5.0
+        max: 30.0

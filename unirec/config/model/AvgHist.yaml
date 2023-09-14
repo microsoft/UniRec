@@ -1,0 +1,5 @@
+# model
+embedding_size: 64 
+asymmetric: True
+user_sequence_alpha: 0.5
+max_seq_len: 10

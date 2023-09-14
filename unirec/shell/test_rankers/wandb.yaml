@@ -1,0 +1,30 @@
+### wandb sweep --project unirec-bst wandb.yaml
+### wandb agent agent_id
+command:
+  - bash
+  - search_bst_ml-100k-rank.sh
+name: bst_hypertuning
+method: bayes  # random / grid / bayes
+metric:
+  goal: maximize
+  name: test/test_auc
+parameters:
+  n_layers:
+    values: [2, 3, 4]
+  max_seq_len:
+    values: [7, 10, 20]
+  embedding_size:
+    values: [16, 32, 64, 80, 128]
+  hidden_dropout_prob:
+    min: 0.1
+    max: 0.5
+  attn_dropout_prob:
+    min: 0.1
+    max: 0.5
+  learning_rate:
+    min: 0.00001
+    max: 0.0009
+  n_heads:
+    values: [2, 4, 8, 16]
+  inner_size:
+    values: [32, 64, 128, 256, 512]

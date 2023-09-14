@@ -1,0 +1,83 @@
+# Environment and Dependencies
+## Environment 
+```
+ubuntu 20.04
+vscode 1.76
+```
+
+## Install OpenJDK
+```shell
+sudo apt update
+sudo apt install default-jdk
+```
+
+Validate you installation
+```shell
+java -version
+```
+
+## Install Apache Maven
+
+### Download Maven
+refer to https://maven.apache.org/download.cgi
+```shell
+wget https://dlcdn.apache.org/maven/maven-3/3.9.4/binaries/apache-maven-3.9.4-bin.tar.gz -P /tmp
+sudo tar xf /tmp/apache-maven-*.tar.gz -C /opt
+sudo ln -s /opt/apache-maven-3.9.4 /opt/maven
+```
+
+### Set PATH
+```shell
+sudo nano /etc/profile.d/maven.sh
+```
+copy the following to `/etc/profile.d/maven.sh`
+```
+export JAVA_HOME=/usr/lib/jvm/default-java
+export M2_HOME=/opt/maven
+export MAVEN_HOME=/opt/maven
+export PATH=${M2_HOME}/bin:${PATH}
+```
+
+make the shell executable
+```shell
+sudo chmod +x /etc/profile.d/maven.sh
+```
+
+add the following to `~/.bashrc` and run `source ~/.bashrc`
+```
+# auto load maven.sh  
+if [ -f /etc/profile.d/maven.sh ]; then  
+  source /etc/profile.d/maven.sh  
+fi  
+```
+
+Validate you installation
+```shell
+mvn -version
+```
+
+
+# Run your program
+All parameters need to be set in `examples/serving/inference_java/src/main/java/com/example/Main.java`.
+1. model parameters
+    ```
+    nUsers, nItems, embeddingSize, maxSeqLen, batchSize, hasFeature, nFeatures, usefulNames
+    ```
+    refer to `UniRec/data/ml-100k/data.info` as well as your model training scripts `examples/training/train_seq_model_ml100k.sh`
+
+2. data parameters: provide inference data and output directory
+    ```
+    historyFile, featureFile, testFile, modelPath, outputDir
+    ```
+
+3. task parameters: select inference tasks
+    ```
+    taskType: `score` | `user embedding` | `item embedding`
+    ```
+
+Then you can launch your program.
+```shell
+cd examples/serving/inference_java
+mvn package
+mvn exec:exec
+```

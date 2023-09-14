@@ -1,0 +1,24 @@
+# config.yaml
+command: 
+    - sh
+    - ./unirec/shell/ada-retrieval/run_seq_benchmark.sh
+name: adaretrieval_hypertuning
+method: bayes #random / grid / bayes
+metric:
+  goal: maximize
+  name: test/test_hit@20
+parameters:
+  n_layers:
+    values: [1, 2, 4]
+  embedding_size:
+    values: [16, 32, 64]
+  hidden_dropout_prob:
+    min: 0.1
+    max: 0.5
+  learning_rate:
+    values: [0.0001, 0.001]
+  seed:
+    min: 1
+    max: 500000
+  n_sample_neg_train:
+    values: [1, 10, 100]

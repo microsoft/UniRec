@@ -1,0 +1,19 @@
+# config.yaml
+command: 
+    - sh
+    - ./unirec/shell/morec/run_base_model.sh
+name: morec_hypertuning
+method: bayes #random / grid / bayes
+metric:
+  goal: maximize
+  name: test/test_ndcg@10
+parameters:
+  max_seq_len:
+    values: [10, 20, 30]
+  embedding_size:
+    values: [32, 64, 128]
+  learning_rate:
+    min: 0.0001
+    max: 0.01
+  weight_decay:
+    values: [0.0, 1e-6, 1e-8]

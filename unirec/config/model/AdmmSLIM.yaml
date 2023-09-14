@@ -1,0 +1,5 @@
+l1_coef: 3.0
+l2_coef: 400.0
+item_spec_reg: 0.5  # Item-Specific Regularization
+admm_penalty: 4000.0
+epochs: 100

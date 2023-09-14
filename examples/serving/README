@@ -1,0 +1,82 @@
+# Introduction
+We provide project deployment solutions for model inference based on C# and Java, including task types such as inferring user embedding, item embedding and user-item score. The following content provides a complete example from data generation and model training to the final inference based on C# and Java.
+
+# Data Format
+
+## Input
+
+`history_file` :
+```
+user_id\titem_seq\ttime_seq\n
+1   4,5,2   18,1,7
+```
+time_seq is optional(will be set to all zero in default), but make sure the onnx model do not need this value in forward func as well.
+
+`feature_file` :
+```
+item_id\titem_features\n
+1   4,5
+```
+this file is optional, you can set `has_feature` parameter in main function to false if your model inference only depends on item id.
+
+`test_file` :
+```
+user_id\titem_id\n
+1   4
+```
+
+`modelPath` : your onnx model (`**.onnx`) 
+
+
+## Output
+
+`score.txt`: Each line is the score of a (user, item) pair corresponding to the test file.
+
+`user_embedding.txt`: Each line is a user embedding corresponding to the test file.
+
+`item_embedding.txt`: Each line is an item embedding corresponding to the test file.
+
+
+
+# Preprocess
+
+Same as Examples in [UniRec/README](../../README) to download and split your data, and train your recommendation model.
+
+## Data Generation
+```shell
+cd examples/preprocess
+python download_split_ml100k.py
+bash preprocess_ml100k.sh
+```
+After that, we can obtain the data files for training and inference.
+1. Training input files: under `UniRec/data/ml-100k` folder.
+2. Inference input files: 
+    1. history_file: `~/.unirec/dataset/ml-100k/user_history.csv`
+    2. test_file: `~/.unirec/dataset/ml-100k/test.csv`.
+
+## Model Training
+
+```shell
+cd examples/training
+bash train_seq_model_ml100k.sh
+```
+After training, you can find your model checkpoint in `UniRec/output/ml-100k/SASRec/train/checkpoint_YYYY-MM-DD_******_**/SASRec-SASRec-ml-100k.pth`
+
+## Convert your Pytorch model to ONNX Format
+```shell
+cd examples/serving
+bash run_torch2onnx.sh
+```
+Currently we only support sequential model, all possible inputs are listed below. You need to specify `useful_names` in the `run_torch2onnx.sh` to notify which inputs are required when the model performs inference.
+```
+user_id, item_id, item_features, item_seq, item_seq_len, item_seq_features, time_seq
+```
+
+# Serving
+
+
+## Serving with C#
+refer to [inference_csharp/README](./inference_csharp/README)
+
+## Serving with Java
+refer to [inference_java/README](./inference_java/README)

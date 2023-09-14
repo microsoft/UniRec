@@ -1,0 +1,8 @@
+group_size: -1
+n_items: 10622
+n_sample_neg_test: 9
+n_sample_neg_train: 9
+n_sample_neg_valid: 9
+n_users: 5692958
+test_batch_size: 100
+

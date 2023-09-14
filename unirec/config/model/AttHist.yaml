@@ -1,0 +1,2 @@
+embedding_size: 64 
+max_seq_len: 10

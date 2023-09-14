@@ -1,0 +1,5 @@
+# model
+embedding_size: 64
+user_sequence_alpha: 0.5
+max_seq_len: 10
+has_user_emb: True

@@ -1,0 +1,29 @@
+name: unirec
+channels:
+  - pytorch
+  - defaults
+dependencies:
+  - cudatoolkit=11.3.1=h2bc3f7f_2
+  - numpy=1.23.3=py39h14f4228_0
+  - pip=22.2.2=py39h06a4308_0
+  - python=3.9.13=haa1d7c7_2
+  - pytorch=1.12.1=py3.9_cuda11.3_cudnn8.3.2_0
+  - torchaudio=0.12.1=py39_cu113
+  - torchvision=0.13.1=py39_cu113
+  - pytest=7.3.1=py39h06a4308_0
+  - pip:
+    - debugpy==1.6.3
+    - feather-format==0.4.1
+    - numba==0.56.3
+    - pandas==1.5.1
+    - pyarrow==10.0.0
+    - scikit-learn==1.1.3
+    - scipy==1.9.3
+    - setproctitle==1.3.2
+    - swifter==1.3.4
+    - tqdm==4.64.1
+    - wandb==0.14.2
+    - tensorboard==2.13.0
+    - cvxpy==1.3.1
+    - onnxruntime==1.15.1
+    - accelerate==0.20.3

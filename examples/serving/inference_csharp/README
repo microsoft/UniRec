@@ -1,0 +1,53 @@
+# Environment and Dependencies
+Environment 
+```
+ubuntu 20.04
+vscode 1.76
+```
+
+Install .NET 7 SDK (you can refer to this [page](https://dotnet.microsoft.com/zh-cn/download/dotnet/7.0) to find commands for your environment.)
+```shell
+wget https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
+sudo dpkg -i packages-microsoft-prod.deb
+rm packages-microsoft-prod.deb
+sudo apt-get update && sudo apt-get install -y dotnet-sdk-7.0
+```
+
+# Run your program
+All parameters need to be set in Program.cs
+1. model parameters
+    ```
+    n_users, n_items, embedding_size, max_seq_len, batch_size, has_feature, n_features, useful_names
+    ```
+    refer to `UniRec/data/ml-100k/data.info` as well as your model training scripts `examples/training/train_seq_model_ml100k.sh`
+
+2. data parameters: provide inference data and output directory
+    ```
+    history_file, feature_file, test_file, modelPath, output_dir
+    ```
+
+3. task parameters: select inference tasks
+    ```
+    task_type: `score` | `user embedding` | `item embedding`
+    ```
+
+Then you can launch your program.
+```shell
+cd examples/serving/inference_csharp
+dotnet run
+```
+
+<!-- 
+Create .NET console program and add packages for loading ONNX model
+```shell
+mkdir dirname  #your project name
+cd dirname
+dotnet new console --framework net7.0
+dotnet add package Microsoft.ML.OnnxRuntime --version 1.15.1
+dotnet add package System.Numerics.Tensors --version 0.1.0
+```
+
+Copy Program.cs(overwrite the one in dirname), DataNode.cs , SeqRecHelper.cs to your dirname.
+
+Change the namespace 'inference_csharp' in each file to your dirname.
+ -->

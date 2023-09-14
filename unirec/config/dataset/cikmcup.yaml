@@ -1,0 +1,8 @@
+group_size: -1
+n_items: 228366
+n_sample_neg_test: -1
+n_sample_neg_train: 4
+n_sample_neg_valid: 4
+n_users: 29730
+test_batch_size: 100
+test_protocal: one_vs_all

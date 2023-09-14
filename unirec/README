@@ -1,0 +1,10 @@
+
+userid and itemid are indexed from 1, because we spare index 0 for padding. 
+
+Use the dev branch as the target of development.
+master branch is for stable production usage.
+
+How to contribute to this repo:
+    (1) create your branch, such as jialia/dev
+    (2) make changes on your new branch.
+    (2) send a pull request to merge your branch to dev.  (Never merge to master!)
