@@ -1,7 +1,5 @@
 # UniRec
 
-A compact recommender library for universal recommendation systems.
-
 ## Introduction
 
 UniRec is an easy-to-use, lightweight, and scalable implementation of recommender systems. Its primary objective is to enable users to swiftly construct a comprehensive ecosystem of recommenders using a minimal set of robust and practical recommendation models. These models are designed to deliver scalable and competitive performance, encompassing a majority of real-world recommendation scenarios.
