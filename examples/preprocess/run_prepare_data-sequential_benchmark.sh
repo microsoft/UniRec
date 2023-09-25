@@ -1,3 +1,5 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
 RAW_DATA_DIR="/path/to/raw_datasets/Sequential-Benchmark"
 

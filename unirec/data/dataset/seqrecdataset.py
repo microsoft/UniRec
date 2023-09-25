@@ -1,4 +1,6 @@
-# @Time   : 2021/8/25
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import os
 import logging 
 import time

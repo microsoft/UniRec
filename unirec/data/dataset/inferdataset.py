@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 from torch.utils.data import Dataset
 import numpy as np
 from unirec.utils.file_io import * 

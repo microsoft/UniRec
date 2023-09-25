@@ -1,4 +1,5 @@
-# Copyright 2022 The MSRA Social Computing Team
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
 ### import extranal packages here
 import logging

@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 RAW_DATA_FILE="/path/to/datasets/data/Beauty.txt"
 RAW_DATA_DIR="/path/to/fmlp"
 

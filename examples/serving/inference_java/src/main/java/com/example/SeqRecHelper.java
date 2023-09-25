@@ -1,3 +1,6 @@
+// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT license.
+
 package com.example;
 import java.io.BufferedReader;  
 import java.io.FileReader;  

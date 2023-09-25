@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 import warnings
 from sklearn.linear_model import ElasticNet
 from sklearn.exceptions import ConvergenceWarning

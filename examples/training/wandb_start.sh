@@ -1,3 +1,6 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 # !/bin/bash
 
 ## Step 1. Initialize sweeps with CLI using configuration file. 
