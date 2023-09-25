@@ -1,14 +1,18 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 #!/bin/bash 
 
-## No arguments, which means local execution
-LOCAL_ROOT='/home/v-huangxu/work/UniRec' 
+HOME_DIR=$(eval echo ~)
+
+LOCAL_ROOT='$HOME_DIR/work/UniRec' 
 
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output" 
-MODEL_NAME='MF' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, LKNN, FASTLKNN]
+MODEL_NAME='MF' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, ConvFormer, FASTConvFormer]
 loss_type='bpr' # [bce, bpr, softmax]
-DATASET_NAME="amazon-electronics" # "xas_1111" "xas_1114"
+DATASET_NAME="amazon-electronics"
 max_seq_len=20
 verbose=2
 

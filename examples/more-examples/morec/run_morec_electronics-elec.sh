@@ -1,31 +1,18 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 #!/bin/bash 
+HOME_DIR=$(eval echo ~)
+LOCAL_ROOT='$HOME_DIR/work/UniRec' 
 
-if [ $# -eq 0 ]
-  then
-    ## No arguments, which means local execution
-    LOCAL_ROOT='/home/v-huangxu/work/UniRec' 
-    
-    MY_DIR=$LOCAL_ROOT
-    ALL_DATA_ROOT="$LOCAL_ROOT/data"
-    OUTPUT_ROOT="$LOCAL_ROOT/output" 
-    MODEL_NAME='MF' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, LKNN, FASTLKNN]
-    loss_type='bpr' # [bce, bpr, softmax]
-    DATASET_NAME="amazon-electronics" # "xas_1111" "xas_1114"
-    max_seq_len=50
-    verbose=2
-
-else
-    ### execute on ITP
-    LOCAL_ROOT='/home/jialia/UniRec'
-    MY_DIR=$1 #"$LOCAL_ROOT/unirec"
-    ALL_DATA_ROOT=$2 #"$LOCAL_ROOT/data"
-    OUTPUT_ROOT=$3 #"$LOCAL_ROOT/output"
-    MODEL_NAME=$4 # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec]
-    loss_type=$5 #'softmax' # [bce, bpr, softmax] 
-    max_seq_len=$6
-    DATASET_NAME="x-engmt-1m"
-    verbose=0
-fi
+MY_DIR=$LOCAL_ROOT
+ALL_DATA_ROOT="$LOCAL_ROOT/data"
+OUTPUT_ROOT="$LOCAL_ROOT/output" 
+MODEL_NAME='MF' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, ConvFormer, FASTConvFormer]
+loss_type='bpr' # [bce, bpr, softmax]
+DATASET_NAME="amazon-electronics"
+max_seq_len=50
+verbose=2
 
 cd $MY_DIR
 export PYTHONPATH=$PWD 
@@ -52,7 +39,7 @@ item_price_filename="item_price.tsv"
 item_category_filename="item_category.tsv"
 
 # well-trained model
-model_file="/home/v-huangxu/work/UniRec/output/amazon-electronics/MF/train/amazon-electronics_MF_bpr/MF-MF.pth"
+model_file="$HOME_DIR/work/UniRec/output/amazon-electronics/MF/train/amazon-electronics_MF_bpr/MF-MF.pth"
 
 currentTime=`date "+%Y-%m-%d_%H%M%S"`
 exp_name="MoRec-FinetuneModel"

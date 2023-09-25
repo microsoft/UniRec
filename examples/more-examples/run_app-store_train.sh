@@ -1,31 +1,19 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 #!/bin/bash 
 
-if [ $# -eq 0 ]
-  then
-    ## No arguments, which means local execution
-    LOCAL_ROOT='/media/xreco/MSRA/jianxun/UniRec' 
-    
-    MY_DIR=$LOCAL_ROOT
-    ALL_DATA_ROOT="$LOCAL_ROOT/data"
-    OUTPUT_ROOT="$LOCAL_ROOT/output" 
-    MODEL_NAME='EASE' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, EASE, SAR, SLIM, MultiVAE]
-    loss_type='softmax' # [bce, bpr, softmax]
-    DATASET_NAME="xbox_app_store"
-    max_seq_len=20
-    verbose=2
+HOME_DIR=$(eval echo ~)
+LOCAL_ROOT='$HOME_DIR/UniRec' 
 
-else
-    ### execute on ITP
-    LOCAL_ROOT='/home/jialia/UniRec'
-    MY_DIR=$1 #"$LOCAL_ROOT/unirec"
-    ALL_DATA_ROOT=$2 #"$LOCAL_ROOT/data"
-    OUTPUT_ROOT=$3 #"$LOCAL_ROOT/output"
-    MODEL_NAME=$4 # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec]
-    loss_type=$5 #'softmax' # [bce, bpr, softmax] 
-    max_seq_len=$6
-    DATASET_NAME="xbox_app_store"
-    verbose=0
-fi
+MY_DIR=$LOCAL_ROOT
+ALL_DATA_ROOT="$LOCAL_ROOT/data"
+OUTPUT_ROOT="$LOCAL_ROOT/output" 
+MODEL_NAME='EASE' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, EASE, SAR, SLIM, MultiVAE]
+loss_type='softmax' # [bce, bpr, softmax]
+DATASET_NAME="Beauty"
+max_seq_len=20
+verbose=2
 
 cd $MY_DIR
 export PYTHONPATH=$PWD 

@@ -1,7 +1,11 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 #!/bin/bash
 
 # root
-LOCAL_ROOT='/home/v-lichengpan/workspace/UniRec'
+LOHOME_DIR=$(eval echo ~)
+CAL_ROOT='$HOME_DIR/workspace/UniRec'
 
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
@@ -11,32 +15,27 @@ OUTPUT_ROOT="$LOCAL_ROOT/output"
 # default parameters for local run
 MODEL_NAME='BST'
 DATA_TYPE='SeqRecDataset'
-DATASET_NAME="ml-100k-rank"
+DATASET_NAME="Beauty-rank"
 verbose=2
-learning_rate=0.0008787070324991168
-epochs=10
+learning_rate=0.0002
+epochs=100
 weight_decay=0 #1e-6
 dropout_prob=0
 n_sample_neg_train=0  #400
-max_seq_len=10
+max_seq_len=7
 history_mask_mode='autoregressive'
-embedding_size=32
+embedding_size=80
 batch_size=1024
-n_layers=3
-n_heads=8
-inner_size=64
 
 # loss_type='softmax'
 loss_type='bce'
+# group_size=21
 group_size=-1
 metrics="['auc','group_auc']"
 key_metric="auc"
 
 # metrics="['hit@10;20;100', 'ndcg@10;20;100','mrr@10;20;100']"
 # key_metric="mrr@100"
-
-use_wandb=0
-wandb_file="$LOCAL_ROOT/unirec/shell/test_rankers/wandb.yaml"
 
 
 cd $MY_DIR
@@ -71,9 +70,8 @@ python unirec/main/main.py \
     --test_protocol='one_vs_k' \
     --grad_clip_value=10 \
     --weight_decay=$weight_decay \
-    --n_layers=$n_layers \
     --user_history_filename="user_history" \
-    --user_history_file_format="user-item_seq" \
+    --user_history_file_format="user-item_seq"  \
     --history_mask_mode=$history_mask_mode \
     --group_size=$group_size \
     --metrics=$metrics \
@@ -86,12 +84,8 @@ python unirec/main/main.py \
     --num_workers_test=0 \
     --verbose=$verbose \
     --neg_by_pop_alpha=0 \
-    --hidden_dropout_prob=0.11175639972166328 \
-    --attn_dropout_prob=0.22652963648975333 \
-    --scheduler_factor=0.5 \
-    --n_heads=$n_heads \
-    --inner_size=$inner_size \
-    --use_wandb=$use_wandb \
-    --wandb_file=$wandb_file
+    --hidden_dropout_prob=0.4654155845792869 \
+    --attn_dropout_prob=0.24153327803951888 \
+    --scheduler_factor=0.5
 # done
 # done

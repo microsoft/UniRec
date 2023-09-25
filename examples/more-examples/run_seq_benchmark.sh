@@ -1,6 +1,11 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 #!/bin/bash
 
-LOCAL_ROOT="/home/jialia/adaretriever/UniRec"
+# root
+HOME_DIR=$(eval echo ~)
+LOCAL_ROOT='$HOME_DIR/UniRec'
 
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
@@ -11,20 +16,20 @@ OUTPUT_ROOT="$LOCAL_ROOT/output"
 # default parameters for local run
 MODEL_NAME='SASRec' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec]
 DATA_TYPE='SeqRecDataset'  # BaseDataset SeqRecDataset
-DATASET_NAME="Beauty" #"Steam"   
+DATASET_NAME="Steam" #"Beauty"   
 verbose=2
 learning_rate=0.001
 epochs=200
 weight_decay=0 #1e-6
-dropout_prob=0.1777
+dropout_prob=0
 loss_type='bce' # [bce, bpr, softmax, ccl]
 ccl_w=100
 ccl_m=0.4
 distance_type='dot' # [cosine, mlp, dot]
-n_sample_neg_train=100  #400
+n_sample_neg_train=19  #400
 max_seq_len=50
 history_mask_mode='autoregressive'
-embedding_size=64
+embedding_size=256
 
 ## for ITP executation, we pass through arguments
 if [ $# -gt 0 ]
@@ -67,10 +72,10 @@ python unirec/main/main.py \
     --use_pre_item_emb=0 \
     --loss_type=$loss_type \
     --max_seq_len=$max_seq_len \
-    --has_user_bias=0 \
+    --has_user_bias=1 \
     --has_item_bias=1 \
     --epochs=$epochs  \
-    --batch_size=1024 \
+    --batch_size=512 \
     --n_sample_neg_train=$n_sample_neg_train \
     --n_sample_neg_valid=99 \
     --valid_protocol='one_vs_all' \
@@ -82,8 +87,8 @@ python unirec/main/main.py \
     --history_mask_mode=$history_mask_mode \
     --metrics="['hit@5;10;20', 'ndcg@5;10;20']" \
     --key_metric="ndcg@10" \
-    --shuffle_train=1 \
-    --seed=366849 \
+    --shuffle_train=0 \
+    --seed=2022 \
     --early_stop=10 \
     --embedding_size=$embedding_size \
     --hidden_size=$embedding_size \
@@ -95,12 +100,7 @@ python unirec/main/main.py \
     --ccl_w=$ccl_w \
     --ccl_m=$ccl_m \
     --hidden_dropout_prob=$dropout_prob \
-    --attn_dropout_prob=$dropout_prob \
-    --n_layers=2 \
-    --n_heads=4 \
-    --use_wandb=0 \
-    --wandb_file="$LOCAL_ROOT/unirec/shell/ada-retrieval/wandb.yaml" \
-    # --gpu_id=0 #if you want to use parallelize on a multi-GPU machine, you should set gpu_id=-1 and use CUDA_VISIBLE_DEVICES to specify the GPU ids to use. See run_wandb_hypertune.sh for more details.
+    --attn_dropout_prob=$dropout_prob
 
 # done
 # done

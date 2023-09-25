@@ -1,31 +1,19 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 #!/bin/bash 
 
-if [ $# -eq 0 ]
-  then
-    ## No arguments, which means local execution
-    LOCAL_ROOT='/media/xreco/MSRA/jianxun/Unirec' 
-    
-    MY_DIR=$LOCAL_ROOT
-    ALL_DATA_ROOT="$LOCAL_ROOT/data"
-    OUTPUT_ROOT="$LOCAL_ROOT/output" 
-    MODEL_NAME='MF' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, LKNN]
-    loss_type='bpr' # [bce, bpr, softmax]
-    DATASET_NAME="x-engmt-1m" # "xas_1111" "xas_1114"
-    max_seq_len=50
-    verbose=2
+HOME_DIR=$(eval echo ~)
+LOCAL_ROOT='$HOME_DIR/Unirec' 
 
-else
-    ### execute on ITP
-    LOCAL_ROOT='/home/jialia/UniRec'
-    MY_DIR=$1 #"$LOCAL_ROOT/unirec"
-    ALL_DATA_ROOT=$2 #"$LOCAL_ROOT/data"
-    OUTPUT_ROOT=$3 #"$LOCAL_ROOT/output"
-    MODEL_NAME=$4 # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec]
-    loss_type=$5 #'softmax' # [bce, bpr, softmax] 
-    max_seq_len=$6
-    DATASET_NAME="x-engmt-1m"
-    verbose=0
-fi
+MY_DIR=$LOCAL_ROOT
+ALL_DATA_ROOT="$LOCAL_ROOT/data"
+OUTPUT_ROOT="$LOCAL_ROOT/output" 
+MODEL_NAME='FASTConvFormer' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, ConvFormer, FASTConvFormer]
+loss_type='bpr' # [bce, bpr, softmax]
+DATASET_NAME="Beauty"
+max_seq_len=50
+verbose=2
 
 cd $MY_DIR
 export PYTHONPATH=$PWD 
@@ -57,6 +45,7 @@ python unirec/main/main.py \
     --dropout_prob=0.0 \
     --embedding_size=32 \
     --hidden_size=32 \
+    --inner_size=256 \
     --use_pre_item_emb=0 \
     --loss_type=$loss_type \
     --max_seq_len=$max_seq_len \

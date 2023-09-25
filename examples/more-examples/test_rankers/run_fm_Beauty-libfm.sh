@@ -1,7 +1,11 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 #!/bin/bash
 
 # root
-LOCAL_ROOT='/home/v-lichengpan/workspace/UniRec'
+HOME_DIR=$(eval echo ~)
+LOCAL_ROOT='$HOME_DIR/workspace/UniRec'
 
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
@@ -11,7 +15,7 @@ OUTPUT_ROOT="$LOCAL_ROOT/output"
 # default parameters for local run
 MODEL_NAME='FM'
 DATA_TYPE='RankDataset'
-DATASET_NAME="ml-100k-libfm"
+DATASET_NAME="Beauty-libfm"
 verbose=2
 epochs=500
 n_sample_neg_train=0  #400
@@ -19,25 +23,26 @@ history_mask_mode='autoregressive'
 embedding_size=80
 linear_mode='gather'
 score_clip_value=-1
-loss_type='bce'
-
-# learning_rate=0.01
-# batch_size=8
-# group_size=-1
-# metrics="['auc']"
-# key_metric="auc"
-# optimizer="adagrad"
 
 learning_rate=0.001
-batch_size=1024
-group_size=21
-metrics="['group_auc','auc']"
+batch_size=8
+loss_type='bce'
+group_size=-1
+metrics="['auc']"
 key_metric="auc"
-optimizer="adam"
+optimizer="adagrad"
+
+# learning_rate=0.01
+# batch_size=1024
+# loss_type='softmax'
+# group_size=21
+# metrics="['group_auc','auc']"
+# key_metric="group_auc"
+# optimizer="adam"
 
 # task="test"
-# model_file="/home/v-lichengpan/workspace/UniRec/output/Beauty/FM/train/checkpoint_2023-08-28_063744_32/FM.pth"
-# model_file="/home/v-lichengpan/workspace/UniRec/output/Beauty/FM/train_pre/xlearn-ckpt_20230822/FM.txt"
+# model_file="$HOME_DIR/workspace/UniRec/output/Beauty/FM/train/checkpoint_2023-08-28_063744_32/FM.pth"
+# model_file="$HOME_DIR/workspace/UniRec/output/Beauty/FM/train_pre/xlearn-ckpt_20230822/FM.txt"
 
 task="train"
 model_file=""

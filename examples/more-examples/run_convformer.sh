@@ -1,31 +1,20 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 #!/bin/bash 
 
-if [ $# -eq 0 ]
-  then
-    ## No arguments, which means local execution
-    LOCAL_ROOT='/media/xreco/MSRA/jianxun/UniRec' 
-    
-    MY_DIR=$LOCAL_ROOT
-    ALL_DATA_ROOT="$LOCAL_ROOT/data"
-    OUTPUT_ROOT="$LOCAL_ROOT/output" 
-    MODEL_NAME='AvgHist' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec]
-    loss_type='bpr' # [bce, bpr, softmax]
-    DATASET_NAME="xas_1109_small" # "xas_1111" "xas_1114"
-    max_seq_len=50
-    verbose=2
+HOME_DIR=$(eval echo ~)
+LOCAL_ROOT='$HOME_DIR/Unirec' 
 
-else
-    ### execute on ITP
-    LOCAL_ROOT='/home/jialia/UniRec'
-    MY_DIR=$1 #"$LOCAL_ROOT/unirec"
-    ALL_DATA_ROOT=$2 #"$LOCAL_ROOT/data"
-    OUTPUT_ROOT=$3 #"$LOCAL_ROOT/output"
-    MODEL_NAME=$4 # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec]
-    loss_type=$5 #'softmax' # [bce, bpr, softmax] 
-    max_seq_len=$6
-    DATASET_NAME="xas_1111"
-    verbose=0
-fi
+MY_DIR=$LOCAL_ROOT
+ALL_DATA_ROOT="$LOCAL_ROOT/data"
+OUTPUT_ROOT="$LOCAL_ROOT/output" 
+MODEL_NAME='ConvFormer' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, ConvFormer]
+loss_type='bpr' # [bce, bpr, softmax]
+DATASET_NAME="Beauty"
+max_seq_len=50
+verbose=2
+
 
 cd $MY_DIR
 export PYTHONPATH=$PWD 
@@ -35,8 +24,8 @@ DATA_TYPE='SeqRecDataset'  # BaseDataset SeqRecDataset
 
 # train
 learning_rate=0.002 
-test_protocol='session_aware'  # 'one_vs_k' 'one_vs_all' 'session_aware'
-history_mask_mode='unorder' # 'autoregressive'
+test_protocol='one_vs_all'  # 'one_vs_k' 'one_vs_all' 'session_aware'
+history_mask_mode='autoregressive' # 'autoregressive'
 
 
 # for  MODEL_NAME in 'AvgHist' 'AttHist' 'MF' 'SVDPlusPlus' 'GRU4Rec' 'SASRec'
@@ -57,6 +46,7 @@ python unirec/main/main.py \
     --dropout_prob=0.0 \
     --embedding_size=32 \
     --hidden_size=32 \
+    --inner_size=32 \
     --use_pre_item_emb=0 \
     --loss_type=$loss_type \
     --max_seq_len=$max_seq_len \
@@ -66,19 +56,19 @@ python unirec/main/main.py \
     --early_stop=5 \
     --batch_size=512 \
     --n_sample_neg_train=9 \
-    --n_sample_neg_valid=9 \
+    --n_sample_neg_valid=19 \
+    --valid_protocol=$test_protocol \
     --test_protocol=$test_protocol \
     --grad_clip_value=0.1 \
     --weight_decay=1e-6 \
     --history_mask_mode=$history_mask_mode \
     --user_history_filename="user_history" \
-    --metrics="['group_auc', 'hit@1;2;3', 'ndcg@1;2;3', 'recall@1;2;3', 'rrecall@1;2;3', 'rhit@1;2;3']" \
-    --key_metric="ndcg@3" \
+    --metrics="['hit@10;20;30', 'ndcg@10;20;30']" \
+    --key_metric="ndcg@20" \
     --num_workers=4 \
     --num_workers_test=0 \
     --verbose=$verbose \
     --neg_by_pop_alpha=0 \
-    --item_price_filename="item_price.tsv"
 # done
 # done
 

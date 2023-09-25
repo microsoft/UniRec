@@ -1,7 +1,11 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 #!/bin/bash
 
 # root
-LOCAL_ROOT='/home/v-lichengpan/workspace/UniRec'
+HOME_DIR=$(eval echo ~)
+LOCAL_ROOT='$HOME_DIR/workspace/UniRec'
 
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"

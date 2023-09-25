@@ -1,18 +1,21 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 #!/bin/bash
 # pre-train on one locale dataset with feature embedding and text embedding
 
 
 # root
-LOCAL_ROOT='/home/v-leiyuxuan/working_dir/UniRec'
+LOCAL_ROOT='$HOME_DIR/UniRec/'
 
 MY_DIR=$LOCAL_ROOT
-ALL_DATA_ROOT="/home/v-leiyuxuan/blob/final_data/unirec_data"
+ALL_DATA_ROOT="$HOME_DIR/UniRec/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output"
 
 
 
 # default parameters for local run
-MODEL_NAME='SASRec' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, LKNN, MultiVAE]
+MODEL_NAME='SASRec' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, ConvFormer, MultiVAE]
 DATA_TYPE='SeqRecDataset' #AERecDataset BaseDataset SeqRecDataset
 DATASET_NAME="ES_final_dataset"  #"x-engmt-1m" #"Beauty"   
 verbose=2
@@ -34,7 +37,7 @@ export PYTHONPATH=$PWD
 ALL_RESULTS_ROOT="$OUTPUT_ROOT/$DATASET_NAME/$MODEL_NAME"
 mkdir -p $ALL_RESULTS_ROOT
 ### train ###################################
-python unirec/main/main.py \
+CUDA_VISIBLE_DEVICES='0,1' torchrun --nnodes=1 --nproc_per_node=2 --rdzv_backend=c10d --rdzv_endpoint=127.0.0.1:29400 unirec/main/main.py \
     --config_dir="unirec/config" \
     --model=$MODEL_NAME \
     --dataloader=$DATA_TYPE \
@@ -49,7 +52,7 @@ python unirec/main/main.py \
     --has_user_bias=0 \
     --has_item_bias=1 \
     --epochs=$epochs  \
-    --batch_size=2048 \
+    --batch_size=1024 \
     --n_sample_neg_train=$n_sample_neg_train \
     --n_sample_neg_valid=0 \
     --valid_protocol='one_vs_all' \
@@ -75,10 +78,11 @@ python unirec/main/main.py \
     --scheduler_factor=0.1209259552381572 \
     --tau=0.6952599498943698 \
     --use_text_emb=1 \
-    --text_emb_path='/home/v-leiyuxuan/blob/final_data/unirec_data/ES_final_dataset/text_embs/addnextitem_mean_mbart/item_embeddings_nid.csv' \
+    --text_emb_path='$HOME_DIR/UniRec/data/ES_final_dataset/item_embeddings_nid.csv' \
     --text_emb_size=1024 \
     --use_features=1 \
-    --features_filepath='/home/v-leiyuxuan/blob/final_data/unirec_data/ES_final_dataset/id2features_2.csv'  \
+    --features_filepath='$HOME_DIR/UniRec/data/ES_final_dataset/id2features_2.csv'  \
     --features_shape='[3489, 99]' \
-    --use_wandb=0 \
-    --wandb_file="$LOCAL_ROOT/unirec/shell/kddcup2023/wandb.yaml"
+    --gpu_id=-1
+    
+    

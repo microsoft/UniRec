@@ -1,8 +1,12 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 #!/bin/bash 
 
  
 ## set default variables for local execution
-LOCAL_ROOT='/media/xreco/MSRA/jianxun/UniRec'     
+HOME_DIR=$(eval echo ~)
+LOCAL_ROOT='$HOME_DIR/UniRec'     
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output" 
@@ -14,22 +18,6 @@ verbose=2
 history_mask_mode='unorder' # 'autoregressive'
 learning_rate=0.002
 
-## for ITP executation, we pass through arguments
-if [ $# -gt 0 ]
-then
-    ### execute on ITP
-    LOCAL_ROOT='/home/jialia/UniRec'
-    MY_DIR=$1 #"$LOCAL_ROOT/unirec"
-    ALL_DATA_ROOT=$2 #"$LOCAL_ROOT/data"
-    OUTPUT_ROOT=$3 #"$LOCAL_ROOT/output"
-    MODEL_NAME=$4 # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec]
-    loss_type=$5 #'softmax' # [bce, bpr, softmax] 
-    max_seq_len=$6
-    DATASET_NAME=$7
-    history_mask_mode=$8
-    learning_rate=$9
-    verbose=0
-fi
 
 cd $MY_DIR
 export PYTHONPATH=$PWD 

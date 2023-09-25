@@ -1,22 +1,25 @@
-#!/bin/bash
-# pre-train on one locale dataset with feature embedding and text embedding
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
 
+#!/bin/bash
+# load the best pre-trained model and finetune only on the next item label of the locale dataset
 
 # root
-LOCAL_ROOT='/home/jialia/v-leiyuxuan/UniRec/'
+HOME_DIR=$(eval echo ~)
+LOCAL_ROOT='$HOME_DIR/working_dir/UniRec'
 
 MY_DIR=$LOCAL_ROOT
-ALL_DATA_ROOT="/home/jialia/v-leiyuxuan/UniRec/data"
+ALL_DATA_ROOT="$HOME_DIR/blob/final_data/unirec_data"
 OUTPUT_ROOT="$LOCAL_ROOT/output"
 
 
 
 # default parameters for local run
-MODEL_NAME='SASRec' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, LKNN, MultiVAE]
+MODEL_NAME='SASRec' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, ConvFormer, MultiVAE]
 DATA_TYPE='SeqRecDataset' #AERecDataset BaseDataset SeqRecDataset
-DATASET_NAME="ES_final_dataset"  #"x-engmt-1m" #"Beauty"   
+DATASET_NAME="ES_final_next_item_dataset"
 verbose=2
-learning_rate=0.00027532020029371717
+learning_rate=0.00000857788516231131
 epochs=100
 weight_decay=0 #1e-6
 dropout_prob=0
@@ -34,7 +37,7 @@ export PYTHONPATH=$PWD
 ALL_RESULTS_ROOT="$OUTPUT_ROOT/$DATASET_NAME/$MODEL_NAME"
 mkdir -p $ALL_RESULTS_ROOT
 ### train ###################################
-CUDA_VISIBLE_DEVICES='0,1' torchrun --nnodes=1 --nproc_per_node=2 --rdzv_backend=c10d --rdzv_endpoint=127.0.0.1:29400 unirec/main/main.py \
+python unirec/main/main.py \
     --config_dir="unirec/config" \
     --model=$MODEL_NAME \
     --dataloader=$DATA_TYPE \
@@ -49,12 +52,12 @@ CUDA_VISIBLE_DEVICES='0,1' torchrun --nnodes=1 --nproc_per_node=2 --rdzv_backend
     --has_user_bias=0 \
     --has_item_bias=1 \
     --epochs=$epochs  \
-    --batch_size=1024 \
+    --batch_size=2048 \
     --n_sample_neg_train=$n_sample_neg_train \
     --n_sample_neg_valid=0 \
     --valid_protocol='one_vs_all' \
     --test_protocol='one_vs_all' \
-    --grad_clip_value=23.436523771594445 \
+    --grad_clip_value=14.019095215321318 \
     --weight_decay=$weight_decay \
     --user_history_filename="user_history" \
     --user_history_file_format="user-item_seq"  \
@@ -62,7 +65,7 @@ CUDA_VISIBLE_DEVICES='0,1' torchrun --nnodes=1 --nproc_per_node=2 --rdzv_backend
     --metrics="['hit@20;100;200;300;1000;2000;3000', 'ndcg@20;100;200;300;1000','mrr@20;100;200;300;1000']" \
     --key_metric="mrr@100" \
     --shuffle_train=1 \
-    --seed=203737 \
+    --seed=274773 \
     --early_stop=5 \
     --embedding_size=$embedding_size \
     --num_workers=6 \
@@ -70,16 +73,15 @@ CUDA_VISIBLE_DEVICES='0,1' torchrun --nnodes=1 --nproc_per_node=2 --rdzv_backend
     --verbose=$verbose \
     --neg_by_pop_alpha=0 \
     --distance_type=$distance_type \
-    --hidden_dropout_prob=0.4305400601023631 \
-    --attn_dropout_prob=0.1459099776835039 \
-    --scheduler_factor=0.1209259552381572 \
-    --tau=0.6952599498943698 \
+    --hidden_dropout_prob=0.3019932127374138 \
+    --attn_dropout_prob=0.48567286167796736 \
+    --scheduler_factor=0.18549748191951176 \
+    --tau=0.8916908032703549 \
     --use_text_emb=1 \
-    --text_emb_path='/home/jialia/v-leiyuxuan/UniRec/data/ES_final_dataset/item_embeddings_nid.csv' \
     --text_emb_size=1024 \
     --use_features=1 \
-    --features_filepath='/home/jialia/v-leiyuxuan/UniRec/data/ES_final_dataset/id2features_2.csv'  \
+    --features_filepath='$HOME_DIR/blob/final_data/unirec_data/ES_final_dataset/id2features_2.csv'  \
     --features_shape='[3489, 99]' \
-    --gpu_id=-1
-    
-    
+    --model_file='$HOME_DIR/working_dir/UniRec/output/ES_final_dataset/SASRec/train/checkpoint_2023-06-24_032006_58/SASRec-SASRec.pth' \
+    --load_best_model=1 \
+    --seq_last=1

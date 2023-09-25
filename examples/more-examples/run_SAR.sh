@@ -1,10 +1,14 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 #!/bin/bash
 
 # root
-LOCAL_ROOT='/home/v-leiyuxuan/working_dir/UniRec'
+HOME_DIR=$(eval echo ~)
+LOCAL_ROOT='$HOME_DIR/working_dir/UniRec'
 
 MY_DIR=$LOCAL_ROOT
-ALL_DATA_ROOT="/home/v-leiyuxuan/blob/final_data/unirec_data"
+ALL_DATA_ROOT="$HOME_DIR/blob/final_data/unirec_data"
 OUTPUT_ROOT="$LOCAL_ROOT/output"
 cd $MY_DIR
 export PYTHONPATH=$PWD

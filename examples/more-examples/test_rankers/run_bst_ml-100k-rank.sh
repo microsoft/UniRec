@@ -1,28 +1,47 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 #!/bin/bash
 
 # root
-LOCAL_ROOT='/home/v-leiyuxuan/working_dir/UniRec'
+HOME_DIR=$(eval echo ~)
+LOCAL_ROOT='$HOME_DIR/workspace/UniRec'
 
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output"
 
 
-
 # default parameters for local run
 MODEL_NAME='BST'
 DATA_TYPE='SeqRecDataset'
-DATASET_NAME="ES_rank_dataset"
+DATASET_NAME="ml-100k-rank"
 verbose=2
-learning_rate=0.0002
-epochs=100
+learning_rate=0.0008787070324991168
+epochs=10
 weight_decay=0 #1e-6
 dropout_prob=0
-loss_type='softmax'
-n_sample_neg_train=20  #400
-max_seq_len=7
+n_sample_neg_train=0  #400
+max_seq_len=10
 history_mask_mode='autoregressive'
-embedding_size=80
+embedding_size=32
+batch_size=1024
+n_layers=3
+n_heads=8
+inner_size=64
+
+# loss_type='softmax'
+loss_type='bce'
+group_size=-1
+metrics="['auc','group_auc']"
+key_metric="auc"
+
+# metrics="['hit@10;20;100', 'ndcg@10;20;100','mrr@10;20;100']"
+# key_metric="mrr@100"
+
+use_wandb=0
+wandb_file="$LOCAL_ROOT/unirec/shell/test_rankers/wandb.yaml"
+
 
 cd $MY_DIR
 export PYTHONPATH=$PWD
@@ -49,18 +68,20 @@ python unirec/main/main.py \
     --has_user_bias=0 \
     --has_item_bias=0 \
     --epochs=$epochs  \
-    --batch_size=1024 \
+    --batch_size=$batch_size \
     --n_sample_neg_train=$n_sample_neg_train \
     --n_sample_neg_valid=0 \
     --valid_protocol='one_vs_k' \
     --test_protocol='one_vs_k' \
     --grad_clip_value=10 \
     --weight_decay=$weight_decay \
+    --n_layers=$n_layers \
     --user_history_filename="user_history" \
-    --user_history_file_format="user-item_seq"  \
+    --user_history_file_format="user-item_seq" \
     --history_mask_mode=$history_mask_mode \
-    --metrics="['hit@10;20;100', 'ndcg@10;20;100','mrr@10;20;100']" \
-    --key_metric="mrr@100" \
+    --group_size=$group_size \
+    --metrics=$metrics \
+    --key_metric=$key_metric \
     --shuffle_train=1 \
     --seed=2023 \
     --early_stop=5 \
@@ -69,14 +90,12 @@ python unirec/main/main.py \
     --num_workers_test=0 \
     --verbose=$verbose \
     --neg_by_pop_alpha=0 \
-    --hidden_dropout_prob=0.4654155845792869 \
-    --attn_dropout_prob=0.24153327803951888 \
-    --scheduler_factor=0.13993354508874983 \
-    --use_text_emb=1 \
-    --text_emb_path='/home/v-leiyuxuan/blob/final_data/unirec_data/ES_final_dataset/text_embs/addnextitem_mean_mbart/item_embeddings_nid.csv' \
-    --text_emb_size=1024 \
-    --use_features=1 \
-    --features_filepath='/home/v-leiyuxuan/blob/final_data/unirec_data/ES_final_dataset/id2features_2.csv'  \
-    --features_shape='[3489, 99]' \
+    --hidden_dropout_prob=0.11175639972166328 \
+    --attn_dropout_prob=0.22652963648975333 \
+    --scheduler_factor=0.5 \
+    --n_heads=$n_heads \
+    --inner_size=$inner_size \
+    --use_wandb=$use_wandb \
+    --wandb_file=$wandb_file
 # done
 # done

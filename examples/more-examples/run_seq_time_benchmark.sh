@@ -1,7 +1,11 @@
+# Copyright (c) Microsoft Corporation.
+# Licensed under the MIT license.
+
 #!/bin/bash
 
 # root
-LOCAL_ROOT='/media/xreco/MSRA/yuxuan/UniRec'
+HOME_DIR=$(eval echo ~)
+LOCAL_ROOT='$HOME_DIR/UniRec'
 
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
@@ -10,9 +14,9 @@ OUTPUT_ROOT="$LOCAL_ROOT/output"
 
 
 # default parameters for local run
-MODEL_NAME='LKNN' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, LKNN, MultiVAE]
+MODEL_NAME='ConvFormer' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, ConvFormer, MultiVAE]
 DATA_TYPE='SeqRecDataset' #AERecDataset BaseDataset SeqRecDataset
-DATASET_NAME="x-benchmark-seq-1m"  #"x-engmt-1m" #"Beauty"   
+DATASET_NAME="Beauty"  #"x-engmt-1m" #"Beauty"   
 verbose=2
 learning_rate=0.0001
 epochs=50
