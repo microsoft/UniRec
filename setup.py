@@ -11,7 +11,7 @@ author = "Jianxun Lian"
 author_email = "jialia@microsoft.com"
 description = "A compact recommender library for universal recommendation systems"
 
-with open("README", "r", encoding='utf-8') as fh:
+with open("README.md", "r", encoding='utf-8') as fh:
     long_description = fh.read()
 
 
