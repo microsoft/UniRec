@@ -57,7 +57,7 @@ The term "Uni-" carries several implications:
 2. Clone Git Repo
 
     ```shell
-    git clone msranativeads@vs-ssh.visualstudio.com:v3/msranativeads/UniRec/UniRec
+    git clone https://github.com/microsoft/UniRec.git
     ```
 
 3. Build
