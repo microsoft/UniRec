@@ -9,7 +9,7 @@ import torch
 
 
 class MinNormSolver(object):
-    MAX_ITER = 250
+    MAX_ITER = 500
     STOP_CRIT = 1e-5
 
     def _min_norm_element_from2(v1v1, v1v2, v2v2):
@@ -41,7 +41,8 @@ class MinNormSolver(object):
         This is correct only in 2D
         ie. min_c |\sum c_i x_i|_2^2 st. \sum c_i = 1 , 1 >= c_1 >= 0 for all i, c_i + c_j = 1.0 for some i, j
         """
-        dmin = 1e8
+        dmin = 1e12
+        init = True
         for i in range(len(vecs)):
             for j in range(i+1,len(vecs)):
                 if (i,j) not in dps:
@@ -58,9 +59,14 @@ class MinNormSolver(object):
                     for k in range(len(vecs[i])):
                         dps[(j, j)] += torch.dot(vecs[j][k], vecs[j][k]).item()#torch.dot(vecs[j][k], vecs[j][k]).data[0]
                 c,d = MinNormSolver._min_norm_element_from2(dps[(i,i)], dps[(i,j)], dps[(j,j)])
-                if d < dmin:
+                if init:
+                    init = False
                     dmin = d
                     sol = [(i,j),c,d]
+                else:
+                    if d < min:
+                        dmin = d
+                        sol = [(i, j), c, d]
         return sol, dps
 
     def _projection2simplex(y):
@@ -141,6 +147,8 @@ class MinNormSolver(object):
             if np.sum(np.abs(change)) < MinNormSolver.STOP_CRIT:
                 return sol_vec, nd
             sol_vec = new_sol_vec
+            iter_count += 1
+        return sol_vec, nd
 
 
     def find_min_norm_element_FW(vecs):

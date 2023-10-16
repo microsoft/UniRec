@@ -516,14 +516,14 @@ class Trainer(object):
             
             model.zero_grad()
             weighted_loss = (weights.detach() * loss_vec[:-1]).sum()
-            loss = 0.1 * weighted_loss + beta * acc_loss
+            loss = self.config['morec_lambda'] * weighted_loss + beta * acc_loss
             return loss
         
         elif controller.__class__.__name__ == 'PIController':
             # PI controller
             objective_loss = loss_vec[-1]  # batch for accuracy is put at the last
             beta = controller.control(objective_loss.detach().data)
-            loss = 0.1 * loss_vec[:-1].mean() + beta * objective_loss
+            loss = self.config['morec_lambda'] * loss_vec[:-1].mean() + beta * objective_loss
             return loss
         
         else:

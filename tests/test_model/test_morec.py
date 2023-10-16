@@ -122,6 +122,7 @@ def test_morec_finetune(data, model, expected_values):
     config['morec_objectives']=['fairness', 'alignment', 'revenue']
     config["morec_ngroup"] = 5
     config["morec_alpha"] = 0.01
+    config["morec_lambda"] = 0.2
     config["morec_expect_loss"] = 0.25
     config["morec_beta_min"] = 0.1
     config["morec_beta_max"] = 1.5
