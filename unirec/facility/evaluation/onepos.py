@@ -226,8 +226,9 @@ class OnePositiveEvaluator(Evaluator):
             for i in range(1, n_group):
                 group_idx.append(gid==i)
 
-            for m in self.metrics_list:
-                if (m != 'least-misery'):
+            for m in res.keys():
+                # calculate the least misery for each metric except tempory values
+                if (m != 'least-misery') and (not m.startswith("_")):
                     if (res[m].shape==gid.shape):
                         all_res[f"min-{m}"] = min([res[m][idx].mean() for idx in group_idx])
                 else:

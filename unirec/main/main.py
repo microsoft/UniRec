@@ -350,14 +350,30 @@ def main(config, accelerator):
         
         trainer.add_objective_controller(morec_oc)
         
+    # if alignment metric Pop-KL is required, get item popularity and item2popularity group
+    if "pop-kl" in config['metrics']:
+        if item2popularity is None:
+            item2popularity = construct_item_popularity(user2history, config['n_items'])
 
+        # if MoRec is enabled and alignment objective is optimized, use the group in MoRec data sampler
+        if (config.get('enable_morec', 0) > 0) and ("alignment" in train_data.batch_sampler.objectives):
+            item2popularity_group = train_data.batch_sampler.item2group['alignment']
+        else:
+            if isinstance(ngroup, int):
+                ngroup = {ob: ngroup for ob in objectives}
+            elif isinstance(ngroup, list):
+                assert len(ngroup) == len(objectives), "The length of `ngroup` should be equal to the length of `objectives`."
+                ngroup = {objectives[i]: ngroup[i] for i in len(objectives)}
+            else:
+                raise TypeError(f"The type of `ngroup` is required to be integer or dict, while got {type(ngroup)} instead.")
+            item2popularity_group = MoRecDS.group_item_by_attr(item2popularity, ngroup)
+    else:
+        item2popularity_group = None
 
     if task == TaskType.TRAIN.value:
         if valid_data:
             trainer.reset_evaluator(valid_data.dataset.config['data_format'], config['valid_protocol'])
-            if config.get('enable_morec', 0) > 0:
-                trainer.evaluator.set_item2popularity(train_data.batch_sampler.item2popularity, 
-                                                      train_data.batch_sampler.item2group['alignment']) 
+            trainer.evaluator.set_item2popularity(item2popularity, item2popularity_group) 
         try: 
             trainer.fit(
                 train_data, valid_data, save_model=save_model, verbose=config['verbose'], 
@@ -376,11 +392,8 @@ def main(config, accelerator):
         user2history=user2history, item2popularity=item2popularity
         )
 
-    trainer.reset_evaluator(test_data.dataset.config['data_format'], config['test_protocol'])    
-    if config.get('enable_morec', 0) > 0:
-        trainer.evaluator.set_item2popularity(train_data.batch_sampler.item2popularity, 
-                                              train_data.batch_sampler.item2group['alignment'])  
-    
+    trainer.reset_evaluator(test_data.dataset.config['data_format'], config['test_protocol'])
+    trainer.evaluator.set_item2popularity(item2popularity, item2popularity_group) 
     test_data = trainer.accelerator.prepare(test_data)
     test_result = trainer.evaluate(test_data, load_best_model=save_model, verbose=config['verbose'], predict_only=infer_score_only)
 

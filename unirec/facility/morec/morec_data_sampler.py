@@ -71,10 +71,44 @@ class BaseSampler(Sampler):
 
 
 class MoRecDS(BaseSampler):
-    def __init__(self, config: Dict, objectives: list, ngroup: Union[Dict,int], train_data: Dataset, val_data: Dataset,
-                 alpha: Union[Dict, float], shuffle: bool=True, item2price: np.ndarray=None, item2category: np.ndarray=None, item2pop: np.ndarray=None, user2history=None, topk: int=100
-                ) -> None:
-        super().__init__(config, train_data, shuffle)
+    def __init__(
+            self,
+            config: Dict,
+            objectives: list,
+            ngroup: Union[Dict,int],
+            train_data: Dataset,
+            val_data: Dataset,
+            alpha: Union[Dict, float],
+            item2price: np.ndarray=None,
+            item2category: np.ndarray=None,
+            item2pop: np.ndarray=None,
+            user2history: np.ndarray=None,
+            topk: int=100,
+            fairness_metric: str="loss"
+        ) -> None:
+        """
+        MoRec data sampler proposed in our paper "" for unified objective modeling.
+
+        Args:
+            config: the global configuration dict
+            objectives (list): objectives to be optimized, available objectives: [revenue, fairness, alignment]
+            ngroup (list or int): samples are divided into several groups, aiming to provide efficiency (revenue, alignment). 
+                                  If it's a positive integer, number of groups for revenue and alignment would be the same. 
+                                  If it's a non-positive integer, number of groups for alignment would be set as 10 by default, 
+                                  and samples would not be divided into groups for revenue. 
+                                  If it's a list, the i-th ngroup represents the number of group of the i-th objective in `objectives`.
+            train_data (Dataset): training set, used for building index in each group.
+            val_data (Dataset): validation set, used for obtain signals of the update of sampling weights
+            alpha (float): learning rate of signed SGD for updating sampling weights
+            item2price (numpy.ndarray): the price of item, used for setting the sampling weight for revenue.
+            item2category (numpy.ndarray): the category of item, used for updating the sampling weight for fairness
+            item2pop (numpy.ndarray): the popularity of item, used as the preset distribution for alignment
+            user2history (numpy.ndarray): the history of user, used in topk operation (topk is used to get recommendation for alignment)
+            topk (int): the topk number for obtain recommendation list for alignment
+            fairness_metric (str): the metric used to monitor the least misery in fairness, optional values: [loss, hit]
+        """
+
+        super().__init__(config, train_data, True)
         self.config = config
         self.objectives = objectives
         self.val_data = val_data
@@ -84,8 +118,15 @@ class MoRecDS(BaseSampler):
         self.item2popularity = item2pop
         self.user2history = user2history
         self.alpha = alpha if isinstance(alpha, dict) else {ob: alpha for ob in objectives}
+        self.fairness_metric = fairness_metric
 
-        ngroup = ngroup if isinstance(ngroup, dict) else {ob: ngroup for ob in objectives}
+        if isinstance(ngroup, int):
+            ngroup = {ob: ngroup for ob in objectives}
+        elif isinstance(ngroup, list):
+            assert len(ngroup) == len(objectives), "The length of `ngroup` should be equal to the length of `objectives`."
+            ngroup = {objectives[i]: ngroup[i] for i in len(objectives)}
+        else:
+            raise TypeError(f"The type of `ngroup` is required to be integer or dict, while got {type(ngroup)} instead.")
 
         self.ngroup = {}
         if 'fairness' in objectives:
@@ -94,12 +135,18 @@ class MoRecDS(BaseSampler):
             self.ngroup['fairness'] = int(item2category.max()) + 1
         if 'revenue' in objectives:
             assert item2price is not None, "'revenue' objective needs price information."
-            _item2group, _group2info = self._group(item2price, ngroup['revenue'], zero_as_group=False)
+            if ngroup['revenue'] > 0:
+                _item2group, _group2info = self.group_item_by_attr(item2price, ngroup['revenue'], zero_as_group=False)
+            else:
+                _n_group = (len(item2price))
+                _item2group, _group2info = self.group_item_by_attr(item2price+1.0, _n_group, zero_as_group=False)
             self.item2group['revenue'] = _item2group
             self.group2info['revenue'] = _group2info
         if 'alignment' in objectives:
             assert item2pop is not None, "'alignment' objective needs popularity information."
-            _item2group, _group2info = self._group(item2pop, ngroup['alignment'], zero_as_group=False)
+            if ngroup['alignment'] <= 0:
+                ngroup['alignment'] = 10
+            _item2group, _group2info = self.group_item_by_attr(item2pop, ngroup['alignment'], zero_as_group=False)
             self.item2group['alignment'] = _item2group
             self.group2info['alignment'] = _group2info
             self.align_target_dist = normalize(_group2info)
@@ -115,12 +162,10 @@ class MoRecDS(BaseSampler):
             self.group2dataindex_val[ob], _ = self._get_group_data_index(val_data, _item2group)
         
         # initialize sampling weight for revenue
-        rev_info = self.group2info['revenue']
-        rev_info = rev_info + rev_info.mean()
-        self.group2weights['revenue'] = normalize(rev_info)
+        self.group2weights['revenue'] = normalize(self.group2info['revenue'])
 
-
-    def _group(self, item2info: np.ndarray, ngroup: int, zero_as_group: bool=True):
+    @staticmethod
+    def group_item_by_attr(item2info: np.ndarray, ngroup: int, zero_as_group: bool=True):
         r""" Group items according to item's information
 
         Args:
@@ -144,7 +189,15 @@ class MoRecDS(BaseSampler):
         groups = np.array_split(idx[: valid_len], _ngroup)
         if zero_as_group:
             groups.append(zero_idx)
-        g_id = np.arange(valid_len) // (len(groups[0])) + 1 # group_id from 1, 0 saved as padding
+        
+        # assign group id to each item
+        g_id = np.arange(valid_len)
+        _split_index = (valid_len // ngroup + 1) * (valid_len % ngroup)
+        g_id[g_id < _split_index] //=  (valid_len // ngroup + 1)
+        g_id[_split_index: ] = (g_id[_split_index: ] - _split_index) // (valid_len // ngroup)  + (valid_len % ngroup)
+        g_id += 1   # g_id start from 1, leave 0 as padding index
+
+        g_id[1: valid_len % ngroup+1] += 1 # group_id from 1, 0 saved as padding
         item2gid = np.zeros_like(item2info, dtype=int)
         item2gid[idx[: valid_len]] = g_id
         if zero_as_group:
@@ -174,28 +227,44 @@ class MoRecDS(BaseSampler):
         group2index = [None] * ngroup
         group2ratio = np.zeros(ngroup)
         for i in range(1, ngroup):
-            group2index[i] = np.squeeze(np.argwhere(group_col==i))
-            group2ratio[i] = len(group2index[i]) / len(item_col)
+            group2index[i] = np.squeeze(np.argwhere(group_col==i), axis=1)
+            group2ratio[i] = len(group2index[i]) / len(item_col) if not (group2index[i] is None) else 0
         return group2index, group2ratio
 
     
-    def _cal_fair_signal(self) -> np.ndarray:
-        r"""calculate loss for each group with given data."""
-        group2index = self.group2dataindex_val['fairness']
-        base_sampler = BaseSampler(self.config, self.val_data, shuffle=False)
-        base_sampler.set_model(self.model, self.accelerator)
-        ngroup = self.ngroup['fairness']
-        loss = np.zeros(ngroup)
-        for groupid in range(1, ngroup):
-            group_data_index = group2index[groupid]
-            base_sampler.set_data_index(group_data_index)
-            group_data_loader = base_sampler.get_loader(4)
-            loss[groupid] = self._gather_loss(self.model, group_data_loader) # a scaler
+    def _cal_fair_signal(self, topk_items=None, target_items=None) -> np.ndarray:
+        r"""calculate the update of sampling weight for fairness with loss or hit metric."""
+        if (topk_items is None) or (target_items is None):
+            group2index = self.group2dataindex_val['fairness']
+            base_sampler = BaseSampler(self.config, self.val_data, shuffle=False)
+            base_sampler.set_model(self.model, self.accelerator)
+            ngroup = self.ngroup['fairness']
+            loss = np.zeros(ngroup)
+            for groupid in range(1, ngroup):
+                group_data_index = group2index[groupid]
+                base_sampler.set_data_index(group_data_index)
+                group_data_loader = base_sampler.get_loader(4)
+                loss[groupid] = self._gather_loss(self.model, group_data_loader) # a scaler
 
-        signal = np.zeros(ngroup)
-        max_loss_group_id = np.argmax(loss)
-        signal[max_loss_group_id] = 1
+            signal = np.zeros(ngroup)
+            max_loss_group_id = np.argmax(loss)
+            signal[max_loss_group_id] = 1
+        else:   # use hit metric as the fairness judgement
+            ngroup = self.ngroup['fairness']
+            item2group = self.item2group['fairness']
+            hit = np.any(topk_items[:, :10]==target_items[:, None], axis=-1)
+            group_id = item2group[target_items]
+            group2hit = np.zeros(ngroup)
+            for i in range(ngroup):
+                _idx = group_id==i
+                if _idx.sum() > 0:
+                    group2hit[i] = hit[_idx].sum() / _idx.sum()
+            group2hit[0] = 1.0  # mask padding idx
+            signal = np.zeros(ngroup)
+            min_hit_group_id = np.argmin(group2hit)
+            signal[min_hit_group_id] = 1
         return signal
+
 
     @torch.no_grad()
     def _gather_loss(self, model, data):
@@ -247,6 +316,7 @@ class MoRecDS(BaseSampler):
             user_id = samples['user_id'].cpu()
             user_hist = self.user2history[user_id]
             user_hist = torch.from_numpy(pad_sequence_arrays(user_hist).astype(int))
+            user_hist[user_hist==pos_item_id.cpu().unsqueeze(-1)] = 0     # Do not mask items in valid data in topk operation
             # samples = model.collect_data(inter_data, schema=data.dataset.return_key_2_index)
             topk_scores, topk_items = model.topk(samples, k, user_hist)
             pos_item_id = self.accelerator.gather_for_metrics(pos_item_id)
@@ -268,7 +338,10 @@ class MoRecDS(BaseSampler):
         signal = {}
         # fairness update signal
         if 'fairness' in self.objectives:
-            signal['fairness'] = self._cal_fair_signal()
+            if self.fairness_metric == 'hit':
+                signal['fairness'] = self._cal_fair_signal(topk_items, target_items)
+            else:
+                signal['fairness'] = self._cal_fair_signal()
         else:
             # fair_signal = np.zeros(self.ngroup['fairness'])
             signal['fairness']  = None
