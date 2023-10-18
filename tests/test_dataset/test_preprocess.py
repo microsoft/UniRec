@@ -45,6 +45,8 @@ CONFIG = {
     "user_history_file_format": 'user-item_seq', 
     "user_history_file_has_header": 1, 
     "user_history_file_col_names": "['user_id', 'item_seq']" , 
+    "gen_text_emb": 0,
+    "text_emb_size": 1024,
 }
 
 
@@ -66,6 +68,7 @@ def test_download_ml100k():
 
 def test_preprocess_data():
     # processed data file could be used for further test pipeline
+    CONFIG['gen_text_emb'] = 1
     process_transaction_dataset(CONFIG)
     assert os.path.exists(os.path.join(CONFIG['outpathroot'], CONFIG['dataset_name'])), "processed data folder not created sucessfully"
     assert os.path.exists(os.path.join(CONFIG['outpathroot'], CONFIG['dataset_name'], 'data.info')), "data.info file not created sucessfully"
@@ -81,6 +84,7 @@ def test_preprocess_data():
     assert os.path.exists(os.path.join(CONFIG['outpathroot'], CONFIG['dataset_name'], 'user_history.ftr')) or \
         os.path.exists(os.path.join(CONFIG['outpathroot'], CONFIG['dataset_name'], 'user_history.pkl')) or \
         os.path.exists(os.path.join(CONFIG['outpathroot'], CONFIG['dataset_name'], 'user_history.tsv')), "user_history file not created sucessfully"
+    assert os.path.exists(os.path.join(CONFIG['outpathroot'], CONFIG['dataset_name'], 'text_emb.csv')), "text_emb.csv file not created sucessfully"
     if os.path.exists(os.path.join(CONFIG['raw_datapath'], 'item_price.csv')):
         shutil.copyfile(os.path.join(CONFIG['raw_datapath'], 'item_price.csv'),
                         os.path.join(CONFIG['outpathroot'], CONFIG['dataset_name'], 'item_price.csv'))

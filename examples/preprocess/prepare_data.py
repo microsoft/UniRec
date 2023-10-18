@@ -351,6 +351,14 @@ def process_transaction_dataset(arguments):
     with open(dataset_yaml_file, 'w') as wt:
         yaml.dump(data_config, wt, default_flow_style=False)
 
+    if 'gen_text_emb' in arguments and arguments['gen_text_emb'] == 1:
+        with open(os.path.join(dataset_outpathroot, dataset_name, 'text_emb.csv'), 'w') as rd:
+            for id in range(data_config['n_items']):
+                embs = np.random.rand(arguments['text_emb_size'])
+                str_embs = ','.join([format(emb, ".6f") for emb in embs])
+                line = f"{id}\t{str_embs}\n"
+                rd.write(line)
+
 
 r'''
     Convert text data files into pandas dataframe and save as binary files.
