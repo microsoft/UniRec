@@ -26,9 +26,8 @@ DATA_TYPE='BaseDataset'  # BaseDataset SeqRecDataset
 learning_rate=0.001
 test_protocol='one_vs_all'  # 'one_vs_k' 'one_vs_all' 'session_aware'
 
-ngroup=10
-item_price_filename="item_price.tsv"
-item_category_filename="item_category.tsv"
+item_meta_morec_filename="item_meta_morec.tsv"
+alignment_distribution_filename="align_dist.tsv"
 
 exp_name="MoRec-BaseModel"
 checkpoint_dir=$DATASET_NAME"_"$MODEL_NAME"_"$loss_type
@@ -69,15 +68,14 @@ python unirec/main/main.py \
     --weight_decay=1e-6 \
     --history_mask_mode='autoregressive' \
     --user_history_filename="user_history" \
-    --metrics="['hit@10;20', 'ndcg@10;20', 'rhit@10;20', 'rndcg@10;20']" \
+    --metrics="['hit@10;20', 'ndcg@10;20', 'rhit@10;20', 'rndcg@10;20', 'pop-kl@10;20', 'least-misery']" \
     --key_metric="ndcg@10" \
     --num_workers=4 \
     --num_workers_test=0 \
     --verbose=$verbose \
     --ngroup=$ngroup \
-    --item_price_filename=$item_price_filename \
-    --objective_weights=$objective_weights \
-    --item_category_filename=$item_category_filename \
+    --item_meta_morec_filename=$item_meta_morec_filename \
+    --align_dist_filename=$alignment_distribution_filename \
     --checkpoint_dir=$checkpoint_dir \
     --exp_name=$exp_name \
     --use_wandb=0 \

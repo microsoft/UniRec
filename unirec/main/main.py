@@ -2,6 +2,7 @@
 # Licensed under the MIT license.
 
 ### import extranal packages here
+from ast import literal_eval
 import logging
 import numpy as np
 from typing import *
@@ -26,7 +27,8 @@ from unirec.facility.trainer import Trainer
 from unirec.facility.solver import Solver
 from unirec.constants.protocols import *
 
-from unirec.facility.morec import MoRecDS, PIXController, StaticWeightSolver, PIController
+from unirec.facility.morec import (load_morec_meta_data, load_alignment_distribution, MoRecDS, 
+                                   PIXController, StaticWeightSolver, PIController)
 
 ## https://github.com/pytorch/pytorch/issues/11201
 import torch.multiprocessing
@@ -116,7 +118,7 @@ def get_user_history(user2history, user2history_time, config, default_name):
     return user2history, user2history_time
 
  
-def get_data_loader(config, task, add_history_trans, MyDataSet, file_path, file_name, user2history=None, item2popularity=None, return_graph=False):
+def get_data_loader(config, task, add_history_trans, MyDataSet, file_path, file_name, user2history=None, item2popularity=None, return_graph=False, item2meta=None, align_dist=None):
     config = copy.deepcopy(config)
     config['data_loader_task'] = task
     config['data_format'] = config['{0}_file_format'.format(task)] 
@@ -167,31 +169,14 @@ def get_data_loader(config, task, add_history_trans, MyDataSet, file_path, file_
         _config = copy.deepcopy(config)
         _config['enable_morec'] = 0
         _valid_data = get_data_loader(
-            _config, 'train', add_history_trans, MyDataSet, file_path, config.get('data_valid_name', 'valid'), 
+            _config, 'train', add_history_trans, MyDataSet, file_path, config.get('data_valid_name', 'valid'),
             user2history=user2history, item2popularity=None
             ) # the task of valid data used in out-optimization should be 'train'.
         objectives = config.get("morec_objectives", ['fairness','alignment','revenue'])
-        if 'revenue' in objectives:
-            item2price_filepath = os.path.join(config['dataset_path'], config['item_price_filename'])
-            item2price = general.load_item2info(config['n_items'], item2price_filepath, 'price')
-        else:
-            item2price = None
-
-        if 'alignment' in objectives:
-            if item2popularity is None:
-                item2popularity = construct_item_popularity(user2history, config['n_items'])
-        else:
-            item2popularity = None
-
-        if 'fairness' in objectives:
-            item2cate_filepath = os.path.join(config['dataset_path'], config['item_category_filename'])
-            item2cate = general.load_item2info(config['n_items'], item2cate_filepath, 'category')
-        else:
-            item2cate = None
         
         morec_ds = MoRecDS(config, objectives, config['morec_ngroup'], dataset, _valid_data.dataset, 
-                           alpha=config['morec_alpha'], item2price=item2price, item2pop=item2popularity, 
-                           item2category=item2cate, user2history=user2history)
+                           alpha=config['morec_alpha'], item2meta=item2meta, align_dist=align_dist, 
+                           user2history=user2history)
 
         data_loader = DataLoader(
             dataset=dataset, 
@@ -232,9 +217,19 @@ def need_user_history(config):
     return False
 
 def need_item_popularity(config):
-    if config.get('neg_by_pop_alpha', 0) > 0:
+    if (config.get('neg_by_pop_alpha', 0) > 0) or ("pop-kl" in config["metrics"]):
         return True
     return False
+
+
+def need_item_meta_morec(config):
+    if config['enable_morec'] > 0:
+        return True
+    else:
+        if ("pop-kl" in config["metrics"]) or ("least-misery" in config["metrics"]):
+            return True
+    return False
+
 
 def construct_item_popularity(user2history, n_items):
     res = np.zeros(n_items, dtype=np.int32)
@@ -281,7 +276,18 @@ def main(config, accelerator):
     item2popularity = None
     if need_item_popularity(config):
         item2popularity = construct_item_popularity(user2history, config['n_items'])
-    
+
+    item2meta_morec = None
+    alignment_distribution = None
+    if need_item_meta_morec(config):
+        item_meta_morec_file_path = os.path.join(config['dataset_path'], config['item_meta_morec_filename'])
+        if config.get('align_dist_filename', None) is not None:
+            align_dist_file_path = os.path.join(config['dataset_path'], config['align_dist_filename'])
+        else:
+            align_dist_file_path = None
+        item2meta_morec = load_morec_meta_data(config['n_items'], item_meta_morec_file_path, config['morec_objectives'])
+        alignment_distribution = load_alignment_distribution(item2meta_morec, item2popularity, align_dist_file_path)
+
     task = config['task']
     model_name = config['model']
 
@@ -300,7 +306,8 @@ def main(config, accelerator):
         ## prepare train data loader
         train_data = get_data_loader(
             config, 'train', add_history_trans, MyDataSet, file_path, DATA_TRAIN_NAME, 
-            user2history=user2history, item2popularity=item2popularity, return_graph=not model.__optimized_by_SGD__
+            user2history=user2history, item2popularity=item2popularity, return_graph=not model.__optimized_by_SGD__,
+            item2meta=item2meta_morec, align_dist=alignment_distribution
             )
         ## prepare valid data loader
         if model.__optimized_by_SGD__:
@@ -339,41 +346,26 @@ def main(config, accelerator):
         train_data.batch_sampler.set_model(trainer.model, trainer.accelerator)
         objectives = config.get("morec_objectives", ['fairness','alignment','revenue'])
         
-        if len(objectives) == 1:    # accuracy + one extra objective
-            morec_oc = PIController(config['morec_expect_loss'], config['morec_beta_min'], 
-                                         config['morec_beta_max'], config['morec_K_p'], config['morec_K_i'])
+        if config.get('morec_objective_controller', 'PID') == 'Static':    # use simple static solver
+            weight = literal_eval(config['morec_objective_weights'])
+            morec_oc = StaticWeightSolver(len(objectives)+1, weight)
         else:   # accuracy + at least two objectives
-            pareto_solver = StaticWeightSolver(len(objectives), weight=eval(config['morec_objective_weights']))
+            if len(objectives) == 1:    # only one extra objective
+                weight = [1.0]
+            else:
+                weight = literal_eval(config['morec_objective_weights'])
+            inner_solver = StaticWeightSolver(len(objectives), weight=weight)
             morec_oc = PIXController(config['morec_expect_loss'], config['morec_beta_min'], 
                                     config['morec_beta_max'], config['morec_K_p'], config['morec_K_i'],
-                                    pareto_solver=pareto_solver)
+                                    pareto_solver=inner_solver)
         
         trainer.add_objective_controller(morec_oc)
         
-    # if alignment metric Pop-KL is required, get item popularity and item2popularity group
-    if "pop-kl" in config['metrics']:
-        if item2popularity is None:
-            item2popularity = construct_item_popularity(user2history, config['n_items'])
-
-        # if MoRec is enabled and alignment objective is optimized, use the group in MoRec data sampler
-        if (config.get('enable_morec', 0) > 0) and ("alignment" in train_data.batch_sampler.objectives):
-            item2popularity_group = train_data.batch_sampler.item2group['alignment']
-        else:
-            if isinstance(ngroup, int):
-                ngroup = {ob: ngroup for ob in objectives}
-            elif isinstance(ngroup, list):
-                assert len(ngroup) == len(objectives), "The length of `ngroup` should be equal to the length of `objectives`."
-                ngroup = {objectives[i]: ngroup[i] for i in len(objectives)}
-            else:
-                raise TypeError(f"The type of `ngroup` is required to be integer or dict, while got {type(ngroup)} instead.")
-            item2popularity_group = MoRecDS.group_item_by_attr(item2popularity, ngroup)
-    else:
-        item2popularity_group = None
 
     if task == TaskType.TRAIN.value:
         if valid_data:
             trainer.reset_evaluator(valid_data.dataset.config['data_format'], config['valid_protocol'])
-            trainer.evaluator.set_item2popularity(item2popularity, item2popularity_group) 
+            trainer.evaluator.set_item_meta_morec(item2meta_morec, alignment_distribution)
         try: 
             trainer.fit(
                 train_data, valid_data, save_model=save_model, verbose=config['verbose'], 
@@ -381,8 +373,8 @@ def main(config, accelerator):
             )
         except KeyboardInterrupt:
             logger.info('Keyboard interrupt: stopping the training and start evaluating on the test set.')
-    
-    
+
+   
     if task == TaskType.INFER.value:
         infer_score_only = True
 
@@ -393,7 +385,7 @@ def main(config, accelerator):
         )
 
     trainer.reset_evaluator(test_data.dataset.config['data_format'], config['test_protocol'])
-    trainer.evaluator.set_item2popularity(item2popularity, item2popularity_group) 
+    trainer.evaluator.set_item_meta_morec(item2meta_morec, alignment_distribution)
     test_data = trainer.accelerator.prepare(test_data)
     test_result = trainer.evaluate(test_data, load_best_model=save_model, verbose=config['verbose'], predict_only=infer_score_only)
 

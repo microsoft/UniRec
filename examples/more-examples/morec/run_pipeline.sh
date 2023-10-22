@@ -27,8 +27,8 @@ learning_rate=0.001
 test_protocol='one_vs_all'  # 'one_vs_k' 'one_vs_all' 'session_aware'
 
 ngroup=10
-item_price_filename="item_price.tsv"
-item_category_filename="item_category.tsv"
+item_meta_morec_filename="item_meta_morec_filename.tsv"
+alignment_distribution_filename="align_dist.tsv"
 
 currentTime=`date "+%Y-%m-%d_%H%M%S"`
 exp_name="MoRec-BaseModel"
@@ -70,13 +70,13 @@ python unirec/main/main.py \
     --weight_decay=1e-6 \
     --history_mask_mode='autoregressive' \
     --user_history_filename="user_history" \
-    --metrics="['hit@10;20', 'ndcg@10;20', 'rhit@10;20', 'rndcg@10;20']" \
+    --metrics="['hit@10;20', 'ndcg@10;20', 'rhit@10;20', 'rndcg@10;20', 'pop-kl@10;20', 'least-misery']" \
     --key_metric="ndcg@10" \
     --num_workers=4 \
     --num_workers_test=0 \
     --verbose=$verbose \
-    --item_price_filename=$item_price_filename \
-    --item_category_filename=$item_category_filename \
+    --item_meta_morec_filename=$item_meta_morec_filename \
+    --align_dist_filename=$alignment_distribution_filename \
     --checkpoint_dir=$checkpoint_dir \
     --exp_name=$exp_name
 
@@ -88,6 +88,7 @@ echo ">>> Step1: Pretrain step completed."
 enable_morec=1
 ngroup=10
 alpha=0.01
+lambda=0.2
 expect_loss=0.25
 beta_min=0.1
 beta_max=1.5
@@ -119,14 +120,15 @@ python unirec/main/main.py \
     --morec_objectives 'fairness' 'alignment' 'revenue' \
     --morec_ngroup=$ngroup \
     --morec_alpha=$alpha \
+    --morec_lambda=$lambda \
     --morec_expect_loss=$expect_loss \
     --morec_beta_min=$beta_min \
     --morec_beta_max=$beta_max \
     --morec_K_p=$K_p \
     --morec_K_i=$K_i \
     --morec_objective_weights=$objective_weights \
-    --item_price_filename=$item_price_filename \
-    --item_category_filename=$item_category_filename \
+    --item_meta_morec_filename=$item_meta_morec_filename \
+    --align_dist_filename=$alignment_distribution_filename \
     --model_file=$model_file \
     --checkpoint_dir=$checkpoint_dir \
     --exp_name=$exp_name

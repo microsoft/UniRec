@@ -224,21 +224,30 @@ def prepare_ml100k():
         json.dump(map_info, jf)
 
 
-    # fake item price and item categories
+    # fake item price and item categories to obtain item meta file for MoRec
     num_items = data['item_id'].max() + 1   # padding_idx=0
     # num_users = data['user_id'].max() + 1
     price_range = [20, 100]
     item_price = np.random.rand(num_items) * (price_range[1]-price_range[0]) + price_range[0]    #
     item_price[0] = 0.0 # padding item
-    item_price_df = pd.DataFrame({'item_id': np.arange(num_items), 'price': item_price})
 
-    num_categories = 5
-    item_category = np.random.randint(1, num_categories+1, (num_items))
-    item_category[0] = 0
-    item_cate_df = pd.DataFrame({'item_id': np.arange(num_items), 'category': item_category})
-    print(item_price_df.shape, item_cate_df.shape, num_items)
-    item_price_df.to_csv(os.path.join(outpath, 'item_price.csv'), index=False, sep=',')
-    item_cate_df.to_csv(os.path.join(outpath, 'item_category.csv'), index=False, sep=',')
+    num_fair_group = 5
+    item_fair_group = np.arange(1, num_fair_group+1)
+    item_fair_group = np.concatenate([item_fair_group, np.random.randint(1, num_fair_group+1, (num_items-num_fair_group))])
+    item_fair_group[0] = 0
+
+    num_align_group = 5
+    item_align_group = np.arange(1, num_align_group+1)
+    item_align_group = np.concatenate([item_align_group, np.random.randint(1, num_align_group+1, (num_items-num_align_group))])
+    item_align_group[0] = 0
+
+    item_meta_morec = pd.DataFrame({
+        'item_id': np.arange(num_items), 
+        'weight': item_price,
+        'fair_group': item_fair_group,
+        'align_group': item_align_group
+    })
+    item_meta_morec.to_csv(os.path.join(outpath, 'item_meta_morec.csv'), index=False, sep=',')
 
     print(f"Processed dataset saved in {os.path.join(outpath)}.")
     return True

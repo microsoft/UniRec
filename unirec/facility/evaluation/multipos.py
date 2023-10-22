@@ -3,10 +3,7 @@
        
 import numpy as np
 import numba
-from numba.typed import Dict
-from numba.core import types
 from sklearn import metrics
-from torch import topk
 from unirec.facility.evaluation.evaluator_abc import *
 from unirec.facility.evaluation.onepos import OnePositiveEvaluator
 

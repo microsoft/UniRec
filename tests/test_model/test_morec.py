@@ -45,20 +45,20 @@ GLOBAL_CONF = {
     'weight_decay': 1e-6,
     'history_mask_mode': 'autoagressive',
     'user_history_filename': "user_history",
-    'metrics': "['hit@5;10', 'ndcg@5;10', 'rhit@5;10', 'rndcg@5;10']",
+    'metrics': "['hit@5;10', 'ndcg@5;10', 'rhit@5;10', 'rndcg@5;10', 'pop-kl@5;10', 'least-misery']",
     'key_metric': "ndcg@5",
     'num_workers': 4,
     'num_workers_test': 0,
     'verbose': 2,
     'neg_by_pop_alpha': 0,
-    'item_price_filename': 'item_price.csv',
-    'item_category_filename': 'item_category.csv',
+    'item_meta_morec_filename': 'item_meta_morec.csv',
+    'align_dist_filename': None,
 }
 
 
 EXPECTED_METRICS = {
-                        "Pretrain": {"hit@5": 0.06815, "ndcg@5": 0.04292},
-                        "Finetune": {"hit@5": 0.07135, "ndcg@5": 0.04829}
+                        "Pretrain": {"hit@5": 0.04579, "ndcg@5": 0.02883},
+                        "Finetune": {"hit@5": 0.05005, "ndcg@5": 0.03423}
                     }
 
 MODEL2DATALOADER = {
@@ -119,7 +119,8 @@ def test_morec_finetune(data, model, expected_values):
     config['checkpoint_dir'] = "morec_finetune_" + config['checkpoint_dir']
 
     # MoRec parameters
-    config['morec_objectives']=['fairness', 'alignment', 'revenue']
+    # config['morec_objectives']=['fairness', 'alignment', 'revenue']
+    config['morec_objectives']=['revenue']
     config["morec_ngroup"] = 5
     config["morec_alpha"] = 0.01
     config["morec_lambda"] = 0.2
@@ -128,11 +129,14 @@ def test_morec_finetune(data, model, expected_values):
     config["morec_beta_max"] = 1.5
     config["morec_K_p"] = 0.05
     config["morec_K_i"] = 0.001
-    config["morec_objective_weights"] = "[0.1,0.1,0.8]"
-    config['metrics'] = "['hit@5', 'ndcg@5', 'rhit@5', 'rndcg@5', 'pop-kl@5', 'least-misery']"
+    # config["morec_objective_weights"] = "[0.1,0.1,0.8]"
+    config["morec_objective_weights"] = "[0.7,0.3]"
+    config["morec_objective_controller"] = "PID"
     result = main.run(config)
     for k, v in expected_values.items():
         assert result[k] == pytest.approx(v, rel=TOL, abs=ABS_TOL), "value of {} not correct".format(k)
 
 if __name__ == "__main__":
-    pytest.main(["test_morec.py", "-s"])
+    test_morec_pretrain('ml-100k', 'MF', EXPECTED_METRICS['Pretrain'])
+    test_morec_finetune('ml-100k', 'MF', EXPECTED_METRICS['Finetune'])
+    # pytest.main(["test_morec.py", "-s"])

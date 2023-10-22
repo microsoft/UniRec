@@ -56,7 +56,7 @@ class AddNegSamples(object):
             item2popularity: an M-len ndarray, reflects the number of positive samples for the item in training set. 
     """
     def _construct_item_sample_ratio(self, item2popularity, alpha=0.5):
-        res = np.power(item2popularity, alpha)
+        res = np.power(item2popularity.astype(float), alpha)
         res /= np.sum(res)
         res[0] = 0  ## item_id 0 is a fake item, should not be sampled
         return res
