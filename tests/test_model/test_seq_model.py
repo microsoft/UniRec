@@ -70,6 +70,7 @@ EXPECTED_METRICS = {
                         'SASRec_softmax': {'hit@5': 0.04686, 'ndcg@5': 0.03066},
                         'SASRec_ccl': {'hit@5': 0.02449, 'ndcg@5': 0.01318},
                         'SASRec_fullsoftmax': {'hit@5': 0.04792, 'ndcg@5': 0.03155},
+                        'SASRec_with_text_emb': {'hit@5': 0.04686, 'ndcg@5': 0.03219},
                     }
 
 
@@ -107,6 +108,43 @@ def test_train_pipeline(data, models, expected_values):
         for k, v in exp_value.items():
             if not result[k] == pytest.approx(v, rel=TOL, abs=ABS_TOL):
                 failed_models.append(model)
+                break
+    assert len(failed_models)==0, f"performance of [{', '.join(failed_models)}] not correct."
+
+@pytest.mark.parametrize(
+        "data, models, expected_values",
+        [
+            (
+                "ml-100k",
+                ["SASRec"],
+                EXPECTED_METRICS
+            )
+        ]
+)
+def test_text_emb_pipeline(data, models, expected_values):
+    all_result = {}
+    # finish all training first for following evaluation and infer test
+    for model in models:
+        config = copy.deepcopy(GLOBAL_CONF)
+        config['task'] = 'train'
+        config['dataset_path'] = os.path.join(config['dataset_path'], data)
+        config['dataset'] = data
+        config['model'] = model
+        config['output_path'] = os.path.join(UNIREC_PATH, f'tests/.temp/output/{data}/{model}')
+        config['use_text_emb'] = 1
+        config['text_emb_path'] = os.path.join(config['dataset_path'], 'text_emb.csv')
+        config['text_emb_size'] = 1024
+        result = main.run(config)
+        all_result[f"{model}_with_text_emb"] = result
+
+    # check the performance
+    failed_models = []
+    for model in models:
+        exp_value = expected_values[f"{model}_with_text_emb"]
+        result = all_result[f"{model}_with_text_emb"]
+        for k, v in exp_value.items():
+            if not result[k] == pytest.approx(v, rel=TOL, abs=ABS_TOL):
+                failed_models.append(f"{model}_with_text_emb")
                 break
     assert len(failed_models)==0, f"performance of [{', '.join(failed_models)}] not correct."
 
