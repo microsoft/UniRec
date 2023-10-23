@@ -53,7 +53,7 @@ def load_morec_meta_data(n_items: int, filepath: str, objectives: List[str]):
     for col in ('align_group', 'fair_group'):
         if item_meta_morec[col].min() == 0:
             _items = item_meta_morec[item_meta_morec[col] == 0]["item_id"].unique()
-            if len(_items) > 0 or _items[0] != 0:   # if the group id range from 0 originally, increase 1 to leave 0 as padding index
+            if len(_items) > 1 or _items[0] != 0:   # if the group id range from 0 originally, increase 1 to leave 0 as padding index
                 item_meta_morec.loc[item_meta_morec['item_id']!=0, col] += 1
 
     item_meta_morec.set_index("item_id", drop=True, inplace=True)
@@ -92,9 +92,9 @@ def load_alignment_distribution(item2meta_morec: pd.DataFrame, item2popularity: 
         # missing_group = [g for g in range(1, max_group_id)]
         group2prob[exp_dist['group_id']] = exp_dist['proportion']
     else:
-        for gid in range(max_group_id):
+        for gid in range(1, max_group_id+1):
             _items = item2meta_morec[item2meta_morec['align_group'] == gid].index.to_numpy()
-            group2prob[gid] = item2popularity[_items].sum()
+            group2prob[gid-1] = item2popularity[_items].sum()
     group2prob = group2prob / (group2prob.sum() + 1e-10)
     return group2prob
 

@@ -58,7 +58,10 @@ GLOBAL_CONF = {
 
 EXPECTED_METRICS = {
                         "Pretrain": {"hit@5": 0.04579, "ndcg@5": 0.02883},
-                        "Finetune": {"hit@5": 0.05005, "ndcg@5": 0.03423}
+                        "Finetune": {
+                            "PID": {"hit@5": 0.05111, "ndcg@5": 0.03315},
+                            "Static": {"hit@5": 0.05111, "ndcg@5": 0.03359}
+                        }
                     }
 
 MODEL2DATALOADER = {
@@ -119,8 +122,7 @@ def test_morec_finetune(data, model, expected_values):
     config['checkpoint_dir'] = "morec_finetune_" + config['checkpoint_dir']
 
     # MoRec parameters
-    # config['morec_objectives']=['fairness', 'alignment', 'revenue']
-    config['morec_objectives']=['revenue']
+    config['morec_objectives']=['fairness', 'alignment', 'revenue']
     config["morec_ngroup"] = 5
     config["morec_alpha"] = 0.01
     config["morec_lambda"] = 0.2
@@ -129,12 +131,19 @@ def test_morec_finetune(data, model, expected_values):
     config["morec_beta_max"] = 1.5
     config["morec_K_p"] = 0.05
     config["morec_K_i"] = 0.001
-    # config["morec_objective_weights"] = "[0.1,0.1,0.8]"
-    config["morec_objective_weights"] = "[0.7,0.3]"
-    config["morec_objective_controller"] = "PID"
-    result = main.run(config)
-    for k, v in expected_values.items():
-        assert result[k] == pytest.approx(v, rel=TOL, abs=ABS_TOL), "value of {} not correct".format(k)
+    obj_weights = {
+        "Static": "[0.1,0.1,0.1,0.7]",  # the weight in the last position is for accuracy
+        "PID": "[0.3,0.3,0.4]",
+    }
+    for controller in ["Static", "PID"]:
+        config["morec_objective_controller"] = controller
+        config["morec_objective_weights"] = obj_weights[controller]
+
+        result = main.run(config)
+        for k, v in expected_values[controller].items():
+            assert result[k] == pytest.approx(v, rel=TOL, abs=ABS_TOL), f"value of metric {k} under controller {controller} not correct"
 
 if __name__ == "__main__":
-    pytest.main(["test_morec.py", "-s"])
+    # pytest.main(["test_morec.py", "-s"])
+    test_morec_pretrain("ml-100k", "MF", EXPECTED_METRICS['Pretrain'])
+    test_morec_finetune("ml-100k", "MF", EXPECTED_METRICS['Finetune'])

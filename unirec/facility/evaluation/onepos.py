@@ -36,18 +36,18 @@ def _get_group_freq(topk_items: np.ndarray, item2group: np.ndarray, k: int):
     
     Args:
         topk_items (np.ndarray): topk item ids (sorted by scores in descending), shape [N, K] (N is batch size)
-        item2group (np.ndarray): the align group of items, the i-the element represents the group index of item i.
+        item2group (np.ndarray): the align group of items, the i-th element represents the group index of item i.
         k (int): cutoff of the recommendation list
 
     Return:
         np.ndarray: frequency of occurrence of each group. 1-D array with shape [#groups,]
     """
-    n_groups = item2group.max()
+    n_groups = item2group.max()     # group index ranges from 0 to (n_groups-1)
     res = np.zeros(n_groups)
     unique_itemid, counts = np.unique(topk_items[:, :k].reshape(-1), return_counts=True)
-    for gid in range(1, n_groups):
-        res[gid] = counts[item2group[unique_itemid]==gid].sum()
-    return res
+    for gid in range(1, n_groups+1):
+        res[gid-1] = counts[item2group[unique_itemid]==gid].sum()
+    return res / (res.sum() + 1e-12)
 
 
 def cal_popkl_metric(group_freq: np.ndarray, alignment_dist: np.ndarray):
