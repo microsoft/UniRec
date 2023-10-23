@@ -1,6 +1,7 @@
 import torch
 import logging
 import numpy as np
+import pandas as pd
 from typing import *
 from accelerate import Accelerator
 import torch.nn as nn
@@ -75,13 +76,14 @@ class MoRecDS(BaseSampler):
             self,
             config: Dict,
             objectives: list,
-            ngroup: Union[Dict,int],
+            ngroup: int,
             train_data: Dataset,
             val_data: Dataset,
             alpha: Union[Dict, float],
-            item2price: np.ndarray=None,
-            item2category: np.ndarray=None,
-            item2pop: np.ndarray=None,
+            item2meta: pd.DataFrame=None,
+            align_dist: np.ndarray=None,
+            # item2category: np.ndarray=None,
+            # item2pop: np.ndarray=None,
             user2history: np.ndarray=None,
             topk: int=100,
             fairness_metric: str="loss"
@@ -115,44 +117,32 @@ class MoRecDS(BaseSampler):
         self.item2group = {}
         self.group2info = {}
         self.topk = topk
-        self.item2popularity = item2pop
+        self.item2meta = item2meta
         self.user2history = user2history
         self.alpha = alpha if isinstance(alpha, dict) else {ob: alpha for ob in objectives}
         self.fairness_metric = fairness_metric
 
-        if isinstance(ngroup, int):
-            ngroup = {ob: ngroup for ob in objectives}
-        elif isinstance(ngroup, list):
-            assert len(ngroup) == len(objectives), "The length of `ngroup` should be equal to the length of `objectives`."
-            ngroup = {objectives[i]: ngroup[i] for i in len(objectives)}
-        else:
-            raise TypeError(f"The type of `ngroup` is required to be integer or dict, while got {type(ngroup)} instead.")
-
         self.ngroup = {}
-        if 'fairness' in objectives:
-            assert item2category is not None, "'fairness' objective needs category information."
-            self.item2group['fairness'] = item2category
-            self.ngroup['fairness'] = int(item2category.max()) + 1
-        if 'revenue' in objectives:
-            assert item2price is not None, "'revenue' objective needs price information."
-            if ngroup['revenue'] > 0:
-                _item2group, _group2info = self.group_item_by_attr(item2price, ngroup['revenue'], zero_as_group=False)
+        for obj in objectives:
+            if obj in {'fairness', 'alignment'}:
+                col = 'fair_group' if obj == 'fairness' else 'align_group'
+                self.item2group[obj] = self.item2meta.loc[np.arange(self.config['n_items'])][col].to_numpy()
+                self.ngroup[obj] = self.item2group[obj].max()
+            elif obj in {'revenue'}:
+                item2weight = self.item2meta.loc[np.arange(self.config['n_items'])]['weight'].to_numpy()
+                if ngroup > 0:
+                    _item2group, _group2info = self.group_item_by_attr(item2weight, ngroup, zero_as_group=False)
+                else:
+                    _item2group = np.arange(self.config['n_items'])
+                    _group2info = item2weight
+                self.item2group['revenue'] = _item2group
+                self.group2info['revenue'] = _group2info
+                self.ngroup['revenue'] = _item2group.max() + 1    # including padding group index
             else:
-                _n_group = (len(item2price))
-                _item2group, _group2info = self.group_item_by_attr(item2price+1.0, _n_group, zero_as_group=False)
-            self.item2group['revenue'] = _item2group
-            self.group2info['revenue'] = _group2info
-        if 'alignment' in objectives:
-            assert item2pop is not None, "'alignment' objective needs popularity information."
-            if ngroup['alignment'] <= 0:
-                ngroup['alignment'] = 10
-            _item2group, _group2info = self.group_item_by_attr(item2pop, ngroup['alignment'], zero_as_group=False)
-            self.item2group['alignment'] = _item2group
-            self.group2info['alignment'] = _group2info
-            self.align_target_dist = normalize(_group2info)
+                raise ValueError(f"Only support ['fairness', 'alignment', 'revenue'] objectives, while got {obj}.")
 
-        self.ngroup = {obj: group.max()+1 for obj, group in self.item2group.items()}
-        
+        self.align_target_dist = align_dist
+
         self.group2dataindex_trn = {}
         self.group2dataindex_val = {}
         self.group2weights = {}
@@ -242,9 +232,12 @@ class MoRecDS(BaseSampler):
             loss = np.zeros(ngroup)
             for groupid in range(1, ngroup):
                 group_data_index = group2index[groupid]
-                base_sampler.set_data_index(group_data_index)
-                group_data_loader = base_sampler.get_loader(4)
-                loss[groupid] = self._gather_loss(self.model, group_data_loader) # a scaler
+                if len(group_data_index) <= 0:
+                    loss[groupid] = -np.inf
+                else:
+                    base_sampler.set_data_index(group_data_index)
+                    group_data_loader = base_sampler.get_loader(4)
+                    loss[groupid] = self._gather_loss(self.model, group_data_loader) # a scaler
 
             signal = np.zeros(ngroup)
             max_loss_group_id = np.argmax(loss)
@@ -405,7 +398,10 @@ class MoRecDS(BaseSampler):
             data_index = []
             select_g_index = [None] * (len(self.group2dataindex_trn[ob])-1)
             for i, g_index in enumerate(self.group2dataindex_trn[ob][1:]):
-                select_g_index[i] = self._sample_batch(group_batch_size[i+1], g_index, len(self), True)
+                if len(g_index) > 0:
+                    select_g_index[i] = self._sample_batch(group_batch_size[i+1], g_index, len(self), True)
+                else:   # no sample corresponding to this group
+                    select_g_index[i] = self._sample_batch(group_batch_size[i+1], np.arange(len(self.train_data)), len(self), False)
             data_index = np.concatenate(select_g_index, axis=-1)    # batch_num * batch_size
 
             data_index = np.random.permutation(data_index)

@@ -85,12 +85,9 @@ def test_preprocess_data():
         os.path.exists(os.path.join(CONFIG['outpathroot'], CONFIG['dataset_name'], 'user_history.pkl')) or \
         os.path.exists(os.path.join(CONFIG['outpathroot'], CONFIG['dataset_name'], 'user_history.tsv')), "user_history file not created sucessfully"
     assert os.path.exists(os.path.join(CONFIG['outpathroot'], CONFIG['dataset_name'], 'text_emb.csv')), "text_emb.csv file not created sucessfully"
-    if os.path.exists(os.path.join(CONFIG['raw_datapath'], 'item_price.csv')):
-        shutil.copyfile(os.path.join(CONFIG['raw_datapath'], 'item_price.csv'),
-                        os.path.join(CONFIG['outpathroot'], CONFIG['dataset_name'], 'item_price.csv'))
-    if os.path.exists(os.path.join(CONFIG['raw_datapath'], 'item_category.csv')):
-        shutil.copyfile(os.path.join(CONFIG['raw_datapath'], 'item_category.csv'),
-                        os.path.join(CONFIG['outpathroot'], CONFIG['dataset_name'], 'item_category.csv'))
+    if os.path.exists(os.path.join(CONFIG['raw_datapath'], 'item_meta_morec.csv')):
+        shutil.copyfile(os.path.join(CONFIG['raw_datapath'], 'item_meta_morec.csv'),
+                        os.path.join(CONFIG['outpathroot'], CONFIG['dataset_name'], 'item_meta_morec.csv'))
 
 
 def test_preprocess_libfm_data():
@@ -213,6 +210,4 @@ def test_preprocess_rank_data():
 
 
 if __name__ == "__main__":
-    test_preprocess_data()
-    test_preprocess_libfm_data()
-    test_preprocess_rank_data()
+    pytest.main(["test_morec.py", "-s"])

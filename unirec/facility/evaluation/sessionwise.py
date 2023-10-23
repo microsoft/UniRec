@@ -3,9 +3,6 @@
     
 import numpy as np
 import numba
-from numba.typed import Dict
-from numba.core import types
-from torch import topk
 from collections import defaultdict
 from sklearn import metrics
 from tqdm import tqdm
@@ -35,7 +32,7 @@ class SessionWiseEvaluator(Evaluator):
     def __init__(self, metrics_str=None, group_size=-1, config=None, total_session=0, accelerator=None):
         super(SessionWiseEvaluator, self).__init__(metrics_str, group_size, config, accelerator)
         self.total_session = total_session
-        self.metrics_list = eval(metrics_str) 
+        # self.metrics_list = eval(metrics_str) 
         self.group_size = group_size
  
     r"""

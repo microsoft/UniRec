@@ -71,7 +71,7 @@ tau: 1.0  # Temperature parameter for softmax type loss
 # morec configurations
 enable_morec: 0
 morec_objectives: ["fairness", "alignment", "revenue"]
-morec_objective_controller: "PIXController"
+morec_objective_controller: "PID" #[PID, Static]
 morec_ngroup: [10, 10, -1]
 morec_alpha: 0.1
 morec_lambda: 0.2

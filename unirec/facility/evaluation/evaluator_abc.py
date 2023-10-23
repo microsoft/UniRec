@@ -8,6 +8,7 @@ import numpy as np
 import pandas as pd
 import inspect
 from scipy import sparse as ssp
+from ast import literal_eval
 
 from unirec.constants.protocols import *
 from unirec.constants.loss_funcs import *
@@ -45,24 +46,14 @@ class Evaluator(object):
         self.NINF = -9999 # np.NINF
         self.sup_metrics = SUPPORTED_RANKING_METRICS
         self.metrics_need_ranks = METRICS_NEED_RANKS
-        self.item2price = None
-        self.item2category = None
-        self.item2popularity = None
-        self.item2popularity_group = None
+        self.item2meta_morec: pd.DataFrame = None
+        self.alignment_dist: np.ndarray = None
+        self.metrics_list = literal_eval(metrics_str)
 
-        metrics_name = {m.split('@')[0] for m in eval(metrics_str)}
-        if len(metrics_name.intersection(METRICS_NEED_PRICE)) > 0:
-            assert 'item_price_filename' in config, '`item_price_filename` is required for metrics related to revenue.'
-            item_price_file = os.path.join(config['dataset_path'], config['item_price_filename'])
-            self.set_item2price(item_price_file)
+        self.metrics_name = {m.split('@')[0] for m in self.metrics_list}
 
-        if len(metrics_name.intersection(METRICS_NEED_CATE)) > 0:  # fairness metrics
-            assert 'item_category_filename' in config, '`item_category_filename` is required for metrics related to fairness.'
-            item_category_file = os.path.join(config['dataset_path'], config['item_category_filename'])
-            self.set_item2category(item_category_file)
-
-        if len(metrics_name.intersection(METRICS_NEED_TOPK)) > 0:
-            for m in eval(metrics_str):
+        if len(self.metrics_name.intersection(METRICS_NEED_TOPK)) > 0:
+            for m in literal_eval(metrics_str):
                 if m.startswith('pop-kl'):
                     self._max_cutoff = max([int(k) for k in m.split('@')[1].split(';')])
             self._topk_flag = True
@@ -79,29 +70,29 @@ class Evaluator(object):
                 return True
         return False
 
-    r"""
-        Load item2price from file. The file should be csv-type file(with header and sep=',') with only two columns-['item_id', 'price'].
-        In addition, pickle/feather file which contains dataframe is supported. 
-        The dtype of the 'item_id' column should be int and dtype of 'price' column should be float.
-        item2price is supposed to be a 1-D ndarray, where item2price[i] means the price for item i. 
-    """
-    def set_item2price(self, item_price_file: str) -> None:
-        self.item2price = general.load_item2info(self.config['n_items'], item_price_file, 'price')
+    # r"""
+    #     Load item2price from file. The file should be csv-type file(with header and sep=',') with only two columns-['item_id', 'price'].
+    #     In addition, pickle/feather file which contains dataframe is supported. 
+    #     The dtype of the 'item_id' column should be int and dtype of 'price' column should be float.
+    #     item2price is supposed to be a 1-D ndarray, where item2price[i] means the price for item i. 
+    # """
+    # def set_item2price(self, item_price_file: str) -> None:
+    #     self.item2price = general.load_item2info(self.config['n_items'], item_price_file, 'price')
 
 
-    r"""
-        Load item2category from file. The file should be csv-type file(with header and sep=',') with only two columns-['item_id', 'category'].
-        In addition, pickle/feather file which contains dataframe is supported. 
-        The dtype of the 'item_id' column should be int and dtype of 'category' column should be int.
-        item2category is supposed to be a 1-D ndarray, where item2category[i] means the category for item i. 
-        For example, the category information may be like 'puzzle' 'shooting' when items are games, while the word should be mapped to ids.
+    # r"""
+    #     Load item2category from file. The file should be csv-type file(with header and sep=',') with only two columns-['item_id', 'category'].
+    #     In addition, pickle/feather file which contains dataframe is supported. 
+    #     The dtype of the 'item_id' column should be int and dtype of 'category' column should be int.
+    #     item2category is supposed to be a 1-D ndarray, where item2category[i] means the category for item i. 
+    #     For example, the category information may be like 'puzzle' 'shooting' when items are games, while the word should be mapped to ids.
         
-        ?? Why we need the information?
-        >> For fairness evaluation, we aims to compare performance of various groups or improve the worst group, so we need the category
-           information as the group indentifier. We would support user2category in the futher when necessary.
-    """
-    def set_item2category(self, item_cate_file: str) -> None:
-        self.item2category = general.load_item2info(self.config['n_items'], item_cate_file, 'category')
+    #     ?? Why we need the information?
+    #     >> For fairness evaluation, we aims to compare performance of various groups or improve the worst group, so we need the category
+    #        information as the group indentifier. We would support user2category in the futher when necessary.
+    # """
+    # def set_item2category(self, item_cate_file: str) -> None:
+    #     self.item2category = general.load_item2info(self.config['n_items'], item_cate_file, 'category')
 
 
     r"""
@@ -112,7 +103,7 @@ class Evaluator(object):
            specific distribution. The distribution is the frequency of items in each group, where groups are obtained by dividing
            items according to their popularities (items with similar popularities are grouped in the same group). 
     """
-    def set_item2popularity(self, item2pop: np.ndarray, item2pop_group: np.ndarray=None) -> None:
+    def set_item_meta_morec(self, item2meta: pd.DataFrame, align_distribution: np.ndarray) -> None:
         """ Set item popularity information.
 
         The information consists of the frequency of appearance of the item in the data set and the group id of items, 
@@ -125,11 +116,8 @@ class Evaluator(object):
         """
         # if is_group and (max_group_id > 100):
         #     print(f"Warning: the max group id of popularity is {max_group_id}, please check whether it's group id or the original popularity.")
-        self.item2popularity = item2pop
-        if item2pop_group is not None:
-            max_group_id = int(item2pop_group.max())
-            print(f"Max group id is {max_group_id}.")
-            self.item2popularity_group = item2pop_group
+        self.item2meta_morec = item2meta
+        self.alignment_dist = align_distribution
 
 
     @torch.no_grad()
@@ -147,14 +135,14 @@ class Evaluator(object):
             ) if verbose == 2 else enumerate(data)
         )
         
-        all_scores = [] 
+        all_scores = []
         all_labels, label_index = [], data.dataset.return_key_2_index[ColNames.LABEL.value]
         if data.dataset.config['data_format'] == DataFileFormat.T2_1.value:            
             all_session_ids = [] 
             session_id_idx = data.dataset.return_key_2_index[ColNames.SESSION.value]
         else:
             all_session_ids = None
-        if self.item2price is not None:
+        if len(self.metrics_name.intersection(METRICS_NEED_PRICE)):
             all_prices = []
             item_id_idx = data.dataset.return_key_2_index[ColNames.ITEMID.value]
         else:
@@ -178,7 +166,7 @@ class Evaluator(object):
                 all_session_ids.extend(session_ids.tolist())
             if all_prices is not None:
                 items = self.accelerator.gather_for_metrics(items).cpu().numpy()
-                all_prices.append(self.item2price[items]) 
+                all_prices.append(self.item2meta_morec.loc[items]['weight'].to_numpy()) 
 
         all_scores = np.concatenate(all_scores)
         all_labels = np.concatenate(all_labels)
@@ -258,12 +246,6 @@ class Evaluator(object):
                 batch_scores += user_bias.reshape(-1, 1)
             batch_scores = batch_scores / self.config['tau']
 
-            if (self.item2price is not None) and (self.__class__.__name__ == 'OnePositiveEvaluator'):
-                batch_prices = np.tile(self.item2price, (batch_scores.shape[0], 1))  # repeat the item price as shape [batch_size, n_items]
-            else:
-                # prices are not needed in MultiPositiveEvaluator
-                # Instead, MultiPositiveEvaluator uses self.item2price
-                batch_prices = None
             for idx, userid in enumerate(batch_userids):
                 itemid = batch_itemids[idx]
                 if data.dataset.config['data_format'] not in {DataFileFormat.T5.value, DataFileFormat.T6.value} and (isinstance(itemid, list) or isinstance(itemid, np.ndarray)):
@@ -278,9 +260,6 @@ class Evaluator(object):
                 if self.__class__.__name__ == 'OnePositiveEvaluator':
                     batch_scores[idx][0] = target_score
                     batch_scores[idx][itemid] = self.NINF
-                    if batch_prices is not None:
-                        batch_prices[idx][0] = self.item2price[itemid]
-                        batch_prices[idx][itemid] = 0.0
                 else:
                     batch_scores[idx][0] = self.NINF
                     batch_scores[idx][itemid] = target_score
@@ -290,7 +269,7 @@ class Evaluator(object):
             # batch_itemids = self.accelerator.gather_for_metrics(torch.tensor(batch_itemids, device=self.accelerator.device)).cpu().numpy()
             # batch_prices = self.accelerator.gather_for_metrics(torch.tensor(batch_prices, device=self.accelerator.device)).cpu().numpy() if batch_prices is not None else None
 
-            result = self.evaluate_with_scores(batch_scores, pos_itemids=batch_itemids, prices=batch_prices)
+            result = self.evaluate_with_scores(batch_scores, pos_itemids=batch_itemids)
             for k, v in result.items():
                 result[k] = self.accelerator.gather_for_metrics(torch.tensor(v, device=self.accelerator.device)).cpu().numpy()
             all_results.append(result)
