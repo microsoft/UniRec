@@ -234,11 +234,13 @@ def prepare_ml100k():
     num_fair_group = 5
     item_fair_group = np.arange(1, num_fair_group+1)
     item_fair_group = np.concatenate([item_fair_group, np.random.randint(1, num_fair_group+1, (num_items-num_fair_group))])
+    np.random.shuffle(item_fair_group)
     item_fair_group[0] = 0
 
     num_align_group = 5
     item_align_group = np.arange(1, num_align_group+1)
     item_align_group = np.concatenate([item_align_group, np.random.randint(1, num_align_group+1, (num_items-num_align_group))])
+    np.random.shuffle(item_align_group)
     item_align_group[0] = 0
 
     item_meta_morec = pd.DataFrame({
