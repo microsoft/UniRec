@@ -210,7 +210,4 @@ def test_preprocess_rank_data():
 
 
 if __name__ == "__main__":
-    test_download_ml100k()
-    test_preprocess_data()
-    # test_preprocess_libfm_data()
-    # test_preprocess_rank_data()
+    pytest.main(["test_morec.py", "-s"])

@@ -137,6 +137,4 @@ def test_morec_finetune(data, model, expected_values):
         assert result[k] == pytest.approx(v, rel=TOL, abs=ABS_TOL), "value of {} not correct".format(k)
 
 if __name__ == "__main__":
-    test_morec_pretrain('ml-100k', 'MF', EXPECTED_METRICS['Pretrain'])
-    test_morec_finetune('ml-100k', 'MF', EXPECTED_METRICS['Finetune'])
-    # pytest.main(["test_morec.py", "-s"])
+    pytest.main(["test_morec.py", "-s"])
