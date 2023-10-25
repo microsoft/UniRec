@@ -10,7 +10,7 @@ LOCAL_ROOT='$HOME_DIR/UniRec'
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output" 
-MODEL_NAME='MF' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec]
+MODEL_NAME='MF' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU, SASRec]
 loss_type='bpr' # [bce, bpr, softmax]
 DATASET_NAME="amazon-book" # gowalla amazon-book yelp2018
 max_seq_len=20
@@ -26,7 +26,7 @@ export PYTHONPATH=$PWD
 DATA_TYPE='SeqRecDataset'  # BaseDataset SeqRecDataset
 
 
-# # for  MODEL_NAME in 'AvgHist' 'AttHist' 'MF' 'SVDPlusPlus' 'GRU4Rec' 'SASRec'
+# # for  MODEL_NAME in 'AvgHist' 'AttHist' 'MF' 'SVDPlusPlus' 'GRU' 'SASRec'
 # # do
 # # for loss_type in 'bce' 'bpr' 'softmax' 
 # # do

@@ -10,7 +10,7 @@ LOCAL_ROOT='$HOME_DIR/work/UniRec'
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output" 
-MODEL_NAME='MF' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, ConvFormer, FASTConvFormer]
+MODEL_NAME='MF' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU, SASRec, ConvFormer, FASTConvFormer]
 loss_type='bpr' # [bce, bpr, softmax]
 DATASET_NAME="amazon-electronics"
 max_seq_len=20
@@ -32,7 +32,7 @@ alignment_distribution_filename="align_dist.tsv"
 exp_name="MoRec-BaseModel"
 checkpoint_dir=$DATASET_NAME"_"$MODEL_NAME"_"$loss_type
 
-# for  MODEL_NAME in 'AvgHist' 'AttHist' 'MF' 'SVDPlusPlus' 'GRU4Rec' 'SASRec'
+# for  MODEL_NAME in 'AvgHist' 'AttHist' 'MF' 'SVDPlusPlus' 'GRU' 'SASRec'
 # do
 # for loss_type in 'bce' 'bpr' 'softmax' 
 # do

@@ -15,7 +15,7 @@ with open("README.md", "r", encoding='utf-8') as fh:
     long_description = fh.read()
 
 
-url = ""    # usually the link of the repo
+url = "https://github.com/microsoft/UniRec"    # usually the link of the repo
 packages = [pack for pack in setuptools.find_packages() if pack.startswith("unirec")]
 
 # more optional classifiers in https://pypi.org/classifiers/

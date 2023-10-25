@@ -9,7 +9,7 @@ LOCAL_ROOT='$HOME_DIR/Unirec'
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output" 
-MODEL_NAME='ConvFormer' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, ConvFormer]
+MODEL_NAME='ConvFormer' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU, SASRec, ConvFormer]
 loss_type='bpr' # [bce, bpr, softmax]
 DATASET_NAME="Beauty"
 max_seq_len=50
@@ -28,7 +28,7 @@ test_protocol='one_vs_all'  # 'one_vs_k' 'one_vs_all' 'session_aware'
 history_mask_mode='autoregressive' # 'autoregressive'
 
 
-# for  MODEL_NAME in 'AvgHist' 'AttHist' 'MF' 'SVDPlusPlus' 'GRU4Rec' 'SASRec'
+# for  MODEL_NAME in 'AvgHist' 'AttHist' 'MF' 'SVDPlusPlus' 'GRU' 'SASRec'
 # do
 # for loss_type in 'bce' 'bpr' 'softmax' 
 # do

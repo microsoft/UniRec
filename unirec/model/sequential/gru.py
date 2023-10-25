@@ -6,9 +6,9 @@ import torch.nn as nn
 from .seqrec_base import SeqRecBase
 
 
-class GRU4Rec(SeqRecBase):    
+class GRU(SeqRecBase):    
     def __init__(self, config):
-        super(GRU4Rec, self).__init__(config)
+        super(GRU, self).__init__(config)
 
     def _define_model_layers(self):
         # gru
