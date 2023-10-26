@@ -42,6 +42,13 @@ class Logger(object):
             self.filename = filename
             self.logger = logging.getLogger(name) # 
             self.logger.setLevel(logging.DEBUG)
+            
+            # remove all potential handlers in case that handlers not closed before, especially in notebook environment
+            if len(self.logger.handlers) > 0:
+                for handler in self.logger.handlers[:]:
+                    handler.close()
+                    self.logger.removeHandler(handler)
+
             handler = logging.FileHandler(filename)
             handler.setLevel(logging.INFO)
             formatter = logging.Formatter('[%(levelname)s] %(name)s: %(message)s')
@@ -59,7 +66,16 @@ class Logger(object):
     def remove_handles(self):
         try:
             if self.logger is not None:
-                for handler in self.logger.handlers:
+                for handler in self.logger.handlers[:]:
+                    # Note: here [:] operator create a shallow copy of the handler list, avoiding the case that
+                    # the remove/delete operation would cause some elements in list are not traversed
+                    # For example, if the list a is [0,1], then we use a for-loop to delete all elements. If we use the
+                    # following code:
+                    # >>> for i in a:
+                    # >>>     a.remove(i)
+                    # >>> print(a)
+                    # We will get a=[1] instead of [], which is not expected.
+                    # In the logger case, the handlers would not be closed completely without the operator [:].
                     handler.close()
                     self.logger.removeHandler(handler)
                 print('Logger close successfully.')

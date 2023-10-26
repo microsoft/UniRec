@@ -43,10 +43,10 @@ def load_morec_meta_data(n_items: int, filepath: str, objectives: List[str]):
     # check whether there are non-padding items missing
     items = item_meta_morec['item_id'].unique()
     if len(items) < n_items:
-        if len(items) == (n_items - 1) and (0 not in item_meta_morec['item_id']):
+        if len(items) == (n_items - 1) and (0 not in items):
             # only padding item is misses, pad it into dataframe
-            new_row = pd.Series([0.0, 0, 0], index=["weight", "fair_group", "align_group"])
-            item_meta_morec.loc[1] = new_row[col_names]
+            new_row = pd.DataFrame({'item_id': [0], 'weight': [0.0], 'fair_group': [0], 'align_group': [0]})
+            item_meta_morec = pd.concat((new_row, item_meta_morec), ignore_index=True)
         else:
             raise ValueError(f"There are `{n_items}` items in dataset but only `{len(items)}` items have meta information.")
 
