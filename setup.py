@@ -53,7 +53,7 @@ install_requires = [
     "tensorboard>=2.13.0", 
     "cvxpy>=1.3.1", 
     "onnxruntime>=1.15.1", 
-    "accelerate>=0.20.3", 
+    "accelerate>=0.20.3,<=0.22.0",  # There is bug in the higher version, which is reported in https://github.com/huggingface/accelerate/issues/2091.
     "pytest>=7.3.1"
 ]
 
