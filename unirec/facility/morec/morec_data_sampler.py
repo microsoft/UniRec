@@ -125,6 +125,8 @@ class MoRecDS(BaseSampler):
         self.alpha = alpha if isinstance(alpha, dict) else {ob: alpha for ob in objectives}
         self.fairness_metric = fairness_metric
 
+        # we leave 0 as the padding index of group, so ngroup is set to group_id.max() + 1 for each objective
+        # More details are refered to the `load_morec_meta_data` funtion in `unirec/facility/morec/__init__.py`
         self.ngroup = {}
         for obj in objectives:
             if obj in {'fairness', 'alignment'}:
@@ -219,7 +221,7 @@ class MoRecDS(BaseSampler):
         ngroup = int(max(item2group)+1)
         group2index = [None] * ngroup
         group2ratio = np.zeros(ngroup)
-        for i in range(1, ngroup):
+        for i in range(1, ngroup):  # only update groups with index from 1 to group_id.max(), ignore padding index 0
             group2index[i] = np.squeeze(np.argwhere(group_col==i), axis=1)
             group2ratio[i] = len(group2index[i]) / len(item_col) if not (group2index[i] is None) else 0
         return group2index, group2ratio
@@ -234,7 +236,7 @@ class MoRecDS(BaseSampler):
             ngroup = self.ngroup['fairness']
             loss = np.zeros(ngroup)
             loss[0] = -np.inf
-            for groupid in range(1, ngroup):
+            for groupid in range(1, ngroup): # only update groups with index from 1 to group_id.max(), ignore padding index 0
                 group_data_index = group2index[groupid]
                 if len(group_data_index) <= 0:
                     loss[groupid] = -np.inf
@@ -252,7 +254,7 @@ class MoRecDS(BaseSampler):
             hit = np.any(topk_items[:, :10]==target_items[:, None], axis=-1)
             group_id = item2group[target_items]
             group2hit = np.zeros(ngroup)
-            for i in range(1, ngroup):
+            for i in range(1, ngroup): # only update groups with index from 1 to group_id.max(), ignore padding index 0
                 _idx = group_id==i
                 if _idx.sum() > 0:
                     group2hit[i] = hit[_idx].sum() / _idx.sum()
@@ -292,7 +294,7 @@ class MoRecDS(BaseSampler):
         group2counts = np.zeros(self.ngroup['alignment'])
         for i in range(ngroup):
             _idx = group_id==i
-            if _idx.sum() > 0:
+            if _idx.sum() > 0: # padding group index 0 is ignored here
                 group2counts[i] = counts[_idx].sum()
         group2pop = group2counts / group2counts.sum()
 
