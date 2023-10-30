@@ -5,7 +5,7 @@ import pandas as pd
 from typing import *
 from accelerate import Accelerator
 import torch.nn as nn
-from torch.utils.data import Sampler, Dataset, DataLoader
+from torch.utils.data import Sampler, BatchSampler, Dataset, DataLoader
 
 from unirec.utils.general import pad_sequence_arrays
 
@@ -13,7 +13,7 @@ def normalize(data):
     return data / (data.sum() + 1e-10)
 
 
-class BaseSampler(Sampler):
+class BaseSampler(BatchSampler):
     """
     BaseSampler is an iterator which could be used as a `batch_sampler` in DataLoader.
     It iterates a batch of sample index each time. And BaseSampler could only handle uniformly
@@ -21,6 +21,9 @@ class BaseSampler(Sampler):
     a batch of samples each time.
     """
     def __init__(self, config: Dict, train_data, shuffle:bool=True) -> None:
+        # In order to be compatible to new-version accelerate, we need to inherit from PyTorch's BatchSampler.
+        # Actually it's not required in original PyTorch. More details refer to the issue https://github.com/huggingface/accelerate/issues/2091.
+        super().__init__(Sampler(train_data), config['batch_size'], False)
         self.config = config
         self.train_data = train_data
         self.model = None
@@ -127,7 +130,7 @@ class MoRecDS(BaseSampler):
             if obj in {'fairness', 'alignment'}:
                 col = 'fair_group' if obj == 'fairness' else 'align_group'
                 self.item2group[obj] = self.item2meta.loc[np.arange(self.config['n_items'])][col].to_numpy()
-                self.ngroup[obj] = self.item2group[obj].max()
+                self.ngroup[obj] = self.item2group[obj].max() + 1
             elif obj in {'revenue'}:
                 item2weight = self.item2meta.loc[np.arange(self.config['n_items'])]['weight'].to_numpy()
                 if ngroup > 0:
@@ -141,7 +144,7 @@ class MoRecDS(BaseSampler):
             else:
                 raise ValueError(f"Only support ['fairness', 'alignment', 'revenue'] objectives, while got {obj}.")
 
-        self.align_target_dist = align_dist
+        self.align_target_dist = np.concatenate((np.zeros(1,), align_dist), axis=0)
 
         self.group2dataindex_trn = {}
         self.group2dataindex_val = {}
@@ -230,6 +233,7 @@ class MoRecDS(BaseSampler):
             base_sampler.set_model(self.model, self.accelerator)
             ngroup = self.ngroup['fairness']
             loss = np.zeros(ngroup)
+            loss[0] = -np.inf
             for groupid in range(1, ngroup):
                 group_data_index = group2index[groupid]
                 if len(group_data_index) <= 0:
@@ -248,7 +252,7 @@ class MoRecDS(BaseSampler):
             hit = np.any(topk_items[:, :10]==target_items[:, None], axis=-1)
             group_id = item2group[target_items]
             group2hit = np.zeros(ngroup)
-            for i in range(ngroup):
+            for i in range(1, ngroup):
                 _idx = group_id==i
                 if _idx.sum() > 0:
                     group2hit[i] = hit[_idx].sum() / _idx.sum()
