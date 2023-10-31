@@ -15,7 +15,7 @@ with open("README.md", "r", encoding='utf-8') as fh:
     long_description = fh.read()
 
 
-url = ""    # usually the link of the repo
+url = "https://github.com/microsoft/UniRec"    # usually the link of the repo
 packages = [pack for pack in setuptools.find_packages() if pack.startswith("unirec")]
 
 # more optional classifiers in https://pypi.org/classifiers/
@@ -51,9 +51,9 @@ install_requires = [
     "tqdm>=4.64.1", 
     "wandb>=0.14.2", 
     "tensorboard>=2.13.0", 
-    "cvxpy==1.3.1", 
+    "cvxpy>=1.3.1", 
     "onnxruntime>=1.15.1", 
-    "accelerate>=0.20.3", 
+    "accelerate>=0.20.3",
     "pytest>=7.3.1"
 ]
 

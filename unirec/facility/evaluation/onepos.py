@@ -207,7 +207,7 @@ class OnePositiveEvaluator(Evaluator):
             n_group = int(self.item2meta_morec['fair_group'].max())
             gid = res['_group_id']
             group_idx = []
-            for i in range(1, n_group):
+            for i in range(1, n_group + 1):
                 group_idx.append(gid==i)
 
             for m in res.keys():

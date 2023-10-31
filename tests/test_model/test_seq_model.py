@@ -55,7 +55,7 @@ GLOBAL_CONF = {
     'conv_size': 10, # for ConvFormer-series
 }
 
-SEQ_MODELS = ["SVDPlusPlus", "FASTConvFormer", "ConvFormer", "SASRec", "AvgHist", "GRU4Rec", "AttHist"]  # Each test is ordered according to the list
+SEQ_MODELS = ["SVDPlusPlus", "FASTConvFormer", "ConvFormer", "SASRec", "AvgHist", "GRU", "AttHist"]  # Each test is ordered according to the list
 LOSS_TYPES = ["bce", "bpr", "softmax", "ccl", "fullsoftmax"]
 EXPECTED_METRICS = {
                         'SVDPlusPlus': {'hit@5': 0.04792, 'ndcg@5': 0.03394},
@@ -63,7 +63,7 @@ EXPECTED_METRICS = {
                         'ConvFormer': {'hit@5': 0.05005, 'ndcg@5': 0.03538},
                         'SASRec': {'hit@5': 0.04792, 'ndcg@5': 0.03184},
                         'AvgHist': {'hit@5': 0.05005, 'ndcg@5': 0.03423},
-                        'GRU4Rec': {'hit@5': 0.04686, 'ndcg@5': 0.03197},
+                        'GRU': {'hit@5': 0.04686, 'ndcg@5': 0.03197},
                         'AttHist': {'hit@5': 0.04686, 'ndcg@5': 0.03221},
                         'SASRec_bce': {'hit@5': 0.04792, 'ndcg@5': 0.03184},
                         'SASRec_bpr': {'hit@5': 0.04686, 'ndcg@5': 0.03122},

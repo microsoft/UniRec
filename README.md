@@ -97,12 +97,13 @@ The term "Uni-" carries several implications:
 | SVDPlusPlus | Sequential Model | [SVD++](https://dl.acm.org/doi/10.1145/1644873.1644874) | [unirec/model/sequential/svdplusplus.py](./unirec/model/sequential/svdplusplus.py) |
 | AvgHist | Sequential Model | - | [unirec/model/sequential/avghist.py](./unirec/model/sequential/avghist.py) |
 | AttHist | Sequential Model | - | [unirec/model/sequential/atthist.py](./unirec/model/sequential/atthist.py) |
-| GRU4Rec | Sequential Model | [GRU4Rec](https://dl.acm.org/doi/10.1145/2988450.2988452)  | [unirec/model/sequential/gru4rec.py](./unirec/model/sequential/gru4rec.py) |
+| GRU | Sequential Model | -  | [unirec/model/sequential/gru.py](./unirec/model/sequential/gru.py) |
 | SASRec | Sequential Model | [SASRec](https://ieeexplore.ieee.org/abstract/document/8594844)  | [unirec/model/sequential/sasrec.py](./unirec/model/sequential/sasrec.py) |
 | ConvFormer | Sequential Model | [ConvFormer](https://arxiv.org/abs/2308.02925)  | [unirec/model/sequential/convformer.py](./unirec/model/sequential/convformer.py) |
 | FastConvFormer | Sequential Model | [ConvFormer](https://arxiv.org/abs/2308.02925) | [unirec/model/sequential/fastconvformer.py](./unirec/model/sequential/fastconvformer.py) |
 | FM | Ranking Model | [Factorization Machine](https://ieeexplore.ieee.org/document/5694074)  | [unirec/model/rank/fm.py](./unirec/model/rank/fm.py) |
 | BST | Ranking Model | [Behavior sequence transformer](https://dl.acm.org/doi/10.1145/3326937.3341261) | [unirec/model/rank/bst.py](./unirec/model/rank/bst.py) |
+| MoRec | Multi-objective | [MoRec](https://arxiv.org/abs/2310.13260) | [unirec/facility/morec](./unirec/facility/morec/) |
 
 
 ## Examples

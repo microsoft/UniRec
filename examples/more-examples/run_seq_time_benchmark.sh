@@ -14,7 +14,7 @@ OUTPUT_ROOT="$LOCAL_ROOT/output"
 
 
 # default parameters for local run
-MODEL_NAME='ConvFormer' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, ConvFormer, MultiVAE]
+MODEL_NAME='ConvFormer' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU, SASRec, ConvFormer, MultiVAE]
 DATA_TYPE='SeqRecDataset' #AERecDataset BaseDataset SeqRecDataset
 DATASET_NAME="Beauty"  #"x-engmt-1m" #"Beauty"   
 verbose=2
@@ -38,7 +38,7 @@ then
     MY_DIR=$1 #"$LOCAL_ROOT/unirec"
     ALL_DATA_ROOT=$2 #"$LOCAL_ROOT/data"
     OUTPUT_ROOT=$3 #"$LOCAL_ROOT/output"
-    MODEL_NAME=$4 # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec]
+    MODEL_NAME=$4 # [AvgHist, AttHist, MF, SVDPlusPlus, GRU, SASRec]
     loss_type=$5 #'softmax' # [bce, bpr, softmax] 
     max_seq_len=$6
     DATASET_NAME=$7

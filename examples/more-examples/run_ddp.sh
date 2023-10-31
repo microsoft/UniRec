@@ -15,7 +15,7 @@ OUTPUT_ROOT="$LOCAL_ROOT/output"
 
 
 # default parameters for local run
-MODEL_NAME='SASRec' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU4Rec, SASRec, ConvFormer, MultiVAE]
+MODEL_NAME='SASRec' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU, SASRec, ConvFormer, MultiVAE]
 DATA_TYPE='SeqRecDataset' #AERecDataset BaseDataset SeqRecDataset
 DATASET_NAME="ES_final_dataset"  #"x-engmt-1m" #"Beauty"   
 verbose=2
