@@ -57,7 +57,9 @@ PREPARE_RAWDATA_CONFIG = {
     'outdir': os.path.join(UNIREC_PATH, 'tests/.temp/raw_datasets'),
     'n_neg_k': 20,
     'sep': '\t',
-    'prefile_file_format': CONFIG['user_history_file_format']
+    'prefile_file_format': CONFIG['user_history_file_format'],
+    'pretrain_word2vec': False,
+    'embedding_size': 32
 }
 
 
@@ -156,6 +158,7 @@ def test_preprocess_rank_data():
     pre_config['data_format'] = 'rank'
     pre_config['infile'] = os.path.join(pre_config['infile_dir'], ds_name, f'{ds_name}.txt')
     pre_config['outdir'] = os.path.join(pre_config['outdir'], ds_name)
+    pre_config['pretrain_word2vec'] = True
 
     main(pre_config)
     assert os.path.exists(pre_config['outdir']), "processed raw_data folder not created sucessfully"
@@ -166,6 +169,8 @@ def test_preprocess_rank_data():
     assert os.path.exists(os.path.join(pre_config['outdir'], 'user_history.txt')), "raw user_history file not created sucessfully"
     assert os.path.exists(os.path.join(pre_config['outdir'], 'user2uid.txt')), "user to user_id file not created sucessfully"
     assert os.path.exists(os.path.join(pre_config['outdir'], 'item2tid.txt')), "item to target_id file not created sucessfully"
+    assert os.path.exists(os.path.join(pre_config['outdir'], 'word2vec.model')), "word2vec model file not created sucessfully"
+    assert os.path.exists(os.path.join(pre_config['outdir'], f"item_emb_{pre_config['embedding_size']}.txt")), "pretrained item embedding file not created sucessfully"
 
     # processed data file could be used for further test pipeline
     config = copy.deepcopy(CONFIG)
@@ -210,4 +215,4 @@ def test_preprocess_rank_data():
 
 
 if __name__ == "__main__":
-    pytest.main(["test_morec.py", "-s"])
+    pytest.main(["test_preprocess.py", "-s"])

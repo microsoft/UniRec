@@ -207,6 +207,11 @@ def prepare_ml100k():
     user_col_name = 'user_id'
     item_col_name='item_id'
 
+    full_user_history = data.groupby(by=user_col_name, as_index=False).agg(list).reset_index(drop=True)
+    full_user_history['item_seq'] = full_user_history[item_col_name].apply(lambda x: ",".join(map(str,x)))
+    full_user_history = full_user_history[[user_col_name, 'item_seq']]
+    full_user_history.to_csv(os.path.join(outpath, 'full_user_history.csv'), index=False, sep='\t')
+
     df_train0, df_test = split_train_test_set(data, col_name=user_col_name, col_names_2_return=None, seed=seed)
     df_train, df_valid = split_train_test_set(df_train0, col_name=user_col_name, col_names_2_return=None, seed=seed)
     print('size in Train/Valid/Test: {0} / {1} / {2}'.format(df_train.shape, df_valid.shape, df_test.shape))

@@ -5,6 +5,9 @@ import os
 import random
 
 import pandas as pd
+from tqdm import tqdm
+import numpy as np
+from gensim.models import Word2Vec
 
 
 r'''
@@ -13,15 +16,15 @@ This function preprocesses the single column user history file and generates seq
 def data_formatting(prefile, outfile, sep: str=",", input_file_format: str="user-item"):
     assert input_file_format in {"user-item", "user-item_seq"}, "`input_file_format` must be `user-item` or `user-item_seq`"
     if input_file_format == "user-item":
-        df = pd.read_csv(prefile, header=0, names=['user_id', 'item_id'], dtype={'user_id': int, 'item_id': str}, sep=sep)
+        df = pd.read_csv(prefile, header=0, names=['user_id', 'item_id'], dtype={'user_id': int, 'item_id': str}, sep=sep, engine='python')
 
         df['item_id'] = df['item_id'].apply(lambda x: [x])
         df_grouped = df.groupby('user_id').agg({'item_id': lambda x: [item[0] for item in x.drop_duplicates()]})
     else:
-        df = pd.read_csv(prefile, header=0, names=['user_id', 'item_seq'], dtype={'user_id': int, 'item_seq': str}, sep=sep)
+        df = pd.read_csv(prefile, header=0, names=['user_id', 'item_seq'], dtype={'user_id': int, 'item_seq': str}, sep=sep, engine='python')
         df['item_id'] = df['item_seq'].apply(lambda x: x.split(","))
         df_grouped = df[['user_id', 'item_id']]
-    user_items_dict = df_grouped.to_dict()['item_id']
+    user_items_dict = df_grouped.set_index('user_id')['item_id'].to_dict()
     parent_dir = os.path.dirname(outfile)
     if not os.path.exists(parent_dir):
         os.makedirs(parent_dir)
@@ -325,7 +328,7 @@ def run_rank(arguments):
         write_to_file(wt_valid, user, valid_items, labels)
         write_to_file(wt_test, user, test_items, labels)
 
-        write_to_file(wt_user_history, user, hist)
+        write_to_file(wt_user_history, user, hist[:-1])
 
     wt_train.close()
     wt_valid.close()
@@ -334,6 +337,56 @@ def run_rank(arguments):
 
     print(f'max item length: {max(lengths)}')
     print(f'min item length: {min(lengths)}')
+
+
+def load_item_seq(data):
+    print(data['item_seq'].apply(max))
+    item_num = max(data['item_seq'].apply(max))
+    # print('item_num', item_num)
+    corpus = []
+    for userid, item_seq in tqdm(zip(data.user_id, data.item_seq), desc='load item_seq'):
+        seq_ = []
+        for token in item_seq:
+            seq_.append(str(token))
+        corpus.append(seq_)
+
+    return corpus, item_num
+
+
+def emb2str(embedding):
+    str_emb = ''
+    for element in embedding:
+        str_emb += (str('%.6f' % element) + ',')
+    return str_emb[:-1]
+
+
+def pretrain_word2vec(arguments):
+    # load data
+    print('\nTraining word2vec...')
+    infile = arguments['user_history_file']
+    outfile_path = arguments['outdir']
+
+    user2itemseq = pd.read_csv(infile, sep=' ', header=None, names=['user_id', 'item_seq'])
+    print(user2itemseq)
+    user2itemseq.item_seq = user2itemseq.item_seq.apply(lambda t: np.array([int(a) for a in t.split(',')]))
+    print(user2itemseq)
+
+    corpus, item_num = load_item_seq(user2itemseq)
+    
+    vector_size = arguments['embedding_size']
+    w2v_model = Word2Vec(corpus, vector_size=vector_size, window=10, min_count=3, workers=4)
+    w2v_model.save(outfile_path+"/word2vec.model")
+
+
+    fp = open(outfile_path+'/item_emb_'+str(vector_size)+'.txt', 'w')
+    for i in tqdm(range(1, item_num+1), desc='output Item Emb'):
+        try:
+            item_emb = w2v_model.wv[str(i)]
+        except:
+            item_emb = np.zeros((vector_size,), dtype=np.float)
+        str_emb = emb2str(item_emb)
+        fp.write('{0}{1}{2}\n'.format(i, '\t', str_emb))
+    fp.close()
 
 
 def parse_cmd_arguments():
@@ -345,6 +398,8 @@ def parse_cmd_arguments():
     arguments.add_argument('--data_format', type=str, default='libfm', choices=["libfm", "rank"])
     arguments.add_argument('--sep', type=str, default=",")
     arguments.add_argument('--prefile_file_format', type=str, default="user-item")
+    arguments.add_argument('--pretrain_word2vec', type=int, default=1)
+    arguments.add_argument('--embedding_size', type=int, default=64)
 
     args = arguments.parse_args()
     # print(args)
@@ -380,6 +435,9 @@ def main(arguments):
 
     else:
         raise ValueError(f"Unsupported data format: {arguments['data_format']}")
+    
+    if arguments['pretrain_word2vec']:
+        pretrain_word2vec(arguments)
 
 
 if __name__ == '__main__':

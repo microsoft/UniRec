@@ -1,9 +1,11 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
-RAW_DATA_PREFILE="/path/to//data/ml-100k/user_history.csv"
-RAW_DATA_FILE="/path/to/raw_datasets/ml-100k-rank/ml-100k-rank.txt"
-RAW_DATA_DIR="/path/to/raw_datasets"
+HOME_DIR=$(eval echo ~)
+
+RAW_DATA_DIR="$HOME_DIR/.unirec/dataset"
+RAW_DATA_PREFILE="$RAW_DATA_DIR/ml-100k/full_user_history.csv"
+RAW_DATA_FILE="$RAW_DATA_DIR/ml-100k-rank/ml-100k-rank.txt"
 
 ROOT_DIR='/path/to/UniRec'
 MY_DIR=$ROOT_DIR
@@ -24,16 +26,22 @@ example_yaml_file="$MY_DIR/unirec/config/dataset/example.yaml"
 
 group_size=-1
 n_neg_k=20
+pretrain_word2vec=1
+embedding_size=32
 
 
-cd $MY_DIR"/preprocess"
+cd $MY_DIR"/examples/preprocess"
 # run ranker.py to get rank data in T4 data format from user history
 python specific_datasets/ranker.py \
     --data_format='rank' \
     --infile=$RAW_DATA_FILE \
     --outdir=$raw_datapath \
     --n_neg_k=$n_neg_k \
-    --prefile=$RAW_DATA_PREFILE
+    --prefile=$RAW_DATA_PREFILE \
+    --prefile_file_format='user-item_seq' \
+    --sep="\t" \
+    --pretrain_word2vec=$pretrain_word2vec \
+    --embedding_size=$embedding_size
 
 
 python prepare_data.py \

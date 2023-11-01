@@ -7,6 +7,7 @@ import copy
 import math
 from typing import *
 from torch.nn import functional as F
+import torch.nn.init as init
 import numpy as np
 
 from unirec.constants.global_variables import *
@@ -430,3 +431,280 @@ class TransformerEncoder(nn.Module):
         if not output_all_encoded_layers:
             all_encoder_layers.append(hidden_states)
         return all_encoder_layers
+
+
+# Ada-Ranker
+class NeuProcessEncoder(nn.Module):
+    def __init__(self, input_size=64, hidden_size=64, output_size=64, dropout_prob=0.4, device=None):
+        super(NeuProcessEncoder, self).__init__()
+        self.device = device
+
+        # Encoder for item embeddings
+        layers = [nn.Linear(input_size, hidden_size),
+                torch.nn.Dropout(dropout_prob),
+                nn.ReLU(inplace=True),
+                nn.Linear(hidden_size, output_size)]
+        self.input_to_hidden = nn.Sequential(*layers)
+
+        # Encoder for latent vector z
+        self.z1_dim = input_size # 64
+        self.z2_dim = hidden_size # 64
+        self.z_dim = output_size # 64
+        self.z_to_hidden = nn.Linear(self.z1_dim, self.z2_dim)
+        self.hidden_to_mu = nn.Linear(self.z2_dim, self.z_dim)
+        self.hidden_to_logsigma = nn.Linear(self.z2_dim, self.z_dim)
+
+    def emb_encode(self, input_tensor):
+        hidden = self.input_to_hidden(input_tensor)
+
+        return hidden
+
+    def aggregate(self, input_tensor):
+        return torch.mean(input_tensor, dim=-2)
+
+    def z_encode(self, input_tensor):
+        hidden = torch.relu(self.z_to_hidden(input_tensor))
+        mu = self.hidden_to_mu(hidden)
+        log_sigma = self.hidden_to_logsigma(hidden)
+        std = torch.exp(0.5 * log_sigma)
+        eps = torch.randn_like(std)
+        z = eps.mul(std).add_(mu)
+        return z, mu, log_sigma
+
+    def encoder(self, input_tensor):
+        z_ = self.emb_encode(input_tensor)
+        z = self.aggregate(z_)
+        self.z, mu, log_sigma = self.z_encode(z)
+        return self.z, mu, log_sigma
+
+    def forward(self, input_tensor):
+        self.z, _, _ = self.encoder(input_tensor)
+        return self.z
+
+
+class AdaLinear(nn.Module):
+    def __init__(self, in_features: int, out_features: int, bias: bool = True, device=None, dtype=None):
+        factory_kwargs = {'device': device, 'dtype': dtype}
+        super(AdaLinear, self).__init__()
+        self.in_features = in_features
+        self.out_features = out_features
+        self.weight = nn.Parameter(torch.empty((out_features, in_features), **factory_kwargs))
+
+        if bias:
+            self.bias = nn.Parameter(torch.empty(out_features, **factory_kwargs))
+        else:
+            self.register_parameter('bias', None)
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
+        if self.bias is not None:
+            fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weight)
+            bound = 1 / math.sqrt(fan_in) if fan_in > 0 else 0
+            nn.init.uniform_(self.bias, -bound, bound)
+
+    def forward(self, input: torch.Tensor):
+        if input.dim() == 2 and self.bias is not None:
+            return torch.addmm(self.bias, input, self.weight_new.transpose(-1, -2))
+
+        output = input.matmul(self.weight_new.transpose(-1, -2))
+        if self.bias is not None:
+            output += self.bias_new
+        return output
+
+    def adaptive_parameters(self, batch_size, gama, beta):
+        '''
+        gama: [batch_size, self.out_features, self.in_features]
+        beta: [batch_size, 1]
+        self.weight.data: [self.out_features, self.in_features]
+        '''
+        gama_w = gama.unsqueeze(1).expand([batch_size, self.out_features, self.in_features])
+        beta_w = beta.unsqueeze(1)
+        gama_b = gama.expand([batch_size, self.out_features])
+        beta_b = beta
+
+        self.weight_specific = self.weight * gama_w + beta_w # [batch_size, self.out_features, self.in_features]
+        self.weight_new = self.weight_specific * self.weight
+
+        if self.bias is not None:
+            self.bias_specific = self.bias * gama_b + beta_b
+            self.bias_new = self.bias_specific + self.bias
+            self.bias_new = self.bias_new.unsqueeze(1)
+
+    def adaptive_parameters_ws(self, batch_size, gama, beta):
+        '''
+        gama: [batch_size, self.out_features, self.in_features]
+        beta: [batch_size, 1]
+        self.weight.data: [self.out_features, self.in_features]
+        '''
+        gama_w = gama.unsqueeze(1).expand([batch_size, self.out_features, self.in_features])
+        beta_w = beta.unsqueeze(1)
+        gama_b = gama.expand([batch_size, self.out_features])
+        beta_b = beta
+
+        self.weight_new = self.weight * gama_w + beta_w # [batch_size, self.out_features, self.in_features]
+
+        if self.bias is not None:
+            self.bias_new = self.bias * gama_b + beta_b
+            self.bias_new = self.bias_new.unsqueeze(1)
+
+    def memory_parameters(self, mem_wei, mem_bias):
+        self.weight_specific = mem_wei # [batch_size, self.out_features, self.in_features]
+        self.weight_new = self.weight_specific * self.weight
+
+        if self.bias is not None:
+            self.bias_specific = mem_bias.squeeze(-1)
+            self.bias_new = self.bias_specific + self.bias
+            self.bias_new = self.bias_new.unsqueeze(1)
+
+    def add_bias_only(self, bias_vec):
+        self.weight_new = self.weight
+        self.bias_new = bias_vec + self.bias
+        self.bias_new = self.bias_new.unsqueeze(1)
+
+    def extra_repr(self):
+        return 'in_features={}, out_features={}, bias={}'.format(
+            self.in_features, self.out_features, self.bias is not None
+        )
+
+
+class MemoryUnit(nn.Module):
+    # clusters_k is k keys
+    def __init__(self, input_size, output_size, emb_size, clusters_k=10):
+        super(MemoryUnit, self).__init__()
+        self.clusters_k = clusters_k
+        self.input_size = input_size
+        self.output_size = output_size
+        self.array = nn.Parameter(init.xavier_uniform_(torch.FloatTensor(self.clusters_k, input_size*output_size)))
+        self.index = nn.Parameter(init.xavier_uniform_(torch.FloatTensor(self.clusters_k, emb_size)))
+        self.softmax = nn.Softmax(dim=-1)
+
+    def forward(self, bias_emb):
+        """
+        bias_emb: [batch_size, 1, emb_size]
+        """
+        att_scores = torch.matmul(bias_emb, self.index.transpose(-1, -2)) # [batch_size, clusters_k]
+        att_scores = self.softmax(att_scores)
+
+        # [batch_size, input_size, output_size]
+        para_new = torch.matmul(att_scores, self.array) # [batch_size, input_size*output_size]
+        para_new = para_new.view(-1, self.output_size, self.input_size)
+
+        return para_new
+
+    def reg_loss(self, reg_weights=1e-2):
+        loss_1 = reg_weights * self.array.norm(2)
+        loss_2 = reg_weights * self.index.norm(2)
+
+        return loss_1 + loss_2
+
+
+class ModulateHidden(nn.Module):
+    def __init__(self, input_size, emb_size):
+        super(ModulateHidden, self).__init__()
+        self.input_size = input_size
+        self.emb_size = emb_size
+        self.gen_para_layer = nn.Linear(self.emb_size, self.input_size*self.input_size)
+
+    def gen_para(self, bias_emb):
+        """
+        bias_emb: [batch_size, emb_size]
+        """
+        para_new = self.gen_para_layer(bias_emb) # [batch_size, self.input_size*self.output_size]
+        self.para_new = para_new.view(-1, self.input_size, self.input_size)
+
+    def forward(self, input: torch.Tensor):
+        output = input.matmul(self.para_new.transpose(-1, -2))
+        
+        return output
+
+
+class AdapLinear_mmoe(nn.Module):
+    def __init__(self, config, emb_size, in_features: int, out_features: int, bias: bool = True, expert_num=10, device=None, dtype=None):
+        factory_kwargs = {'device': device, 'dtype': dtype}
+        super(AdapLinear_mmoe, self).__init__()
+        self.config = config
+        self.in_features = in_features
+        self.out_features = out_features
+        self.device = device
+
+        # self.weight = nn.Parameter(torch.empty((out_features, in_features), **factory_kwargs))
+        _weight = torch.randn((expert_num, self.out_features*self.in_features), requires_grad=True).to(self.device)
+        self.weight = nn.Parameter(_weight)
+
+        if bias:
+            _bias = torch.randn((expert_num, self.out_features), requires_grad=True).to(self.device)
+            self.bias = nn.Parameter(_bias)
+            # self.bias = nn.Parameter(torch.empty(out_features, **factory_kwargs))
+
+        # gate
+        self.gate_net = nn.Linear(emb_size, expert_num, bias=False)
+        self.softmax = nn.Softmax(-1)
+        
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
+        if self.bias is not None:
+            fan_in, _ = nn.init._calculate_fan_in_and_fan_out(self.weight)
+            bound = 1 / math.sqrt(fan_in) if fan_in > 0 else 0
+            nn.init.uniform_(self.bias, -bound, bound)
+
+    def forward(self, input: torch.Tensor):
+        if input.dim() == 2 and self.bias is not None:
+            return torch.addmm(self.bias, input, self.weight_new.transpose(-1, -2))
+
+        output = input.matmul(self.weight_new.transpose(-1, -2))
+        if self.bias is not None:
+            output += self.bias_new
+        return output
+
+    def adaptive_parameters(self, domain_bias):
+        # domain_bias: [batch_size, emb_size]
+        if len(domain_bias.size()) == 3:
+            domain_bias = domain_bias.squeeze(1)
+        att_scores = self.gate_net(domain_bias) # [batch_size, expert_num]
+        att_scores = self.softmax(att_scores)
+        self.weight_new = torch.matmul(att_scores, self.weight) # [batch_size, input_size*output_size]
+        self.weight_new = self.weight_new.view(-1, self.out_features, self.in_features) # [batch_size, self.out_features, self.in_features]
+        if self.bias is not None:
+            self.bias_new = torch.matmul(att_scores, self.bias).unsqueeze(1) # [batch_size, input_size*output_size]
+
+    def extra_repr(self):
+        return 'in_features={}, out_features={}, bias={}'.format(
+            self.in_features, self.out_features, self.bias is not None
+        )
+
+
+class MMoEUnit(nn.Module):
+    # clusters_k is k keys
+    def __init__(self, input_size, output_size, emb_size, expert_num=10):
+        super(MMoEUnit, self).__init__()
+        self.expert_num = expert_num
+        self.input_size = input_size
+        self.output_size = output_size
+
+        _weight = torch.randn((expert_num, self.output_size*self.input_size), requires_grad=True)
+        self.weight = nn.Parameter(_weight)
+
+        # gate
+        self.gate_net = nn.Linear(emb_size, expert_num, bias=False)
+        self.softmax = nn.Softmax(-1)
+
+        self.reset_parameters()
+
+    def reset_parameters(self):
+        nn.init.kaiming_uniform_(self.weight, a=math.sqrt(5))
+
+    def forward(self, bias_emb):
+        """
+        bias_emb: [batch_size, 1, emb_size]
+        """
+        if len(bias_emb.size()) == 3:
+            bias_emb = bias_emb.squeeze(1)
+        att_scores = self.gate_net(bias_emb) # [batch_size, expert_num]
+        att_scores = self.softmax(att_scores)
+        para_new = torch.matmul(att_scores, self.weight) # [batch_size, input_size*output_size]
+        para_new = para_new.view(-1, self.output_size, self.input_size) # [batch_size, self.out_features, self.in_features]
+
+        return para_new

@@ -377,6 +377,14 @@ class Trainer(object):
         unwrapped_model = self.accelerator.unwrap_model(self.model)
         unwrapped_model.load_state_dict(checkpoint['state_dict'], strict=False)
         self.logger.info('Loading model from {0}. The best epoch was {1}'.format(checkpoint_file, checkpoint['cur_epoch']))
+        ### freeze base model's parameters
+        if self.config['freeze']:
+            self.logger.info('Freeze the pretrained model parameters.')
+            for name, param in unwrapped_model.named_parameters():
+                if name in checkpoint['state_dict']:
+                    param.requires_grad = False
+            self.logger.info(self.model)
+        
 
     def save_model(self, filename, optimizer, scheduler, cur_epoch=-1, cur_step=-1, best_valid_score=None, config=None): 
         state = {
