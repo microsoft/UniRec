@@ -5,6 +5,14 @@ from ..base.ranker import Ranker
 import unirec.model.modules as modules
 
 
+r"""
+AdaRanker is a model for sequential recommendation, which is implemented based on PyTorch. It's designed to adapt to changes in data distribution.
+AdaRanker can choose either GRU or SASRec as the base model, and it modulates the input and encodes it using the chosen base model.
+
+AdaRanker implements a data distribution adaptive ranking model, which can embed users and candidate items, and predict the scores of users for items through forward propagation. The extraction of the distribution vector and the modulation of the input are the core parts of AdaRanker.
+
+For a more detailed description of the AdaRanker model, you can refer to the paper: "Ada-Ranker: A Data Distribution Adaptive Ranking Paradigm for Sequential Recommendation" available at https://arxiv.org/pdf/2205.10775.pdf
+"""
 class AdaRanker(Ranker):
     def __init__(self, config):
         self.train_type = config['train_type']
@@ -70,7 +78,7 @@ class AdaRanker(Ranker):
                 num_layers=self.num_layers, bias=True, batch_first=True,
             )
             self.dense = nn.Linear(self.hidden_size, self.embedding_size)
-        
+
         elif self.base_model == "SASRec":
             # multi-head attention
             self.position_embedding = nn.Embedding(self.max_seq_len, self.hidden_size) if self.use_pos_emb else None
@@ -111,6 +119,7 @@ class AdaRanker(Ranker):
         return extended_attention_mask
 
     def forward_user_emb(self, item_seq=None):
+        ## TODO: use item_seq, item_seq_features and time_seq to generate item_embedding_for_user
         item_seq_emb = self.item_embedding(item_seq)
         if self.train_type == "Ada-Ranker":
             item_seq_emb = self._input_modulation(item_seq_emb, self.distribution_vector)
@@ -144,8 +153,9 @@ class AdaRanker(Ranker):
 
     def forward_scores(self, item_id=None, item_features=None, item_seq=None, item_seq_len=None, item_seq_features=None):
         # print(item_id.shape, item_seq.shape)
+        ## TODO: use item_features to generate item_embedding
         candidate_items_emb = self._get_candidates_emb(item_id)
-        
+
         if self.train_type == 'Ada-Ranker':
             self.distribution_vector = self._distribution_vector_etractor(candidate_items_emb)  # [batch_size, embedding_size]
 

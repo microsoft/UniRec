@@ -5,7 +5,7 @@
 
 # root
 HOME_DIR=$(eval echo ~)
-LOCAL_ROOT="$HOME_DIR/workspace/microsoft/UniRec"
+LOCAL_ROOT="$HOME_DIR/workspace/UniRec"
 
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
@@ -15,7 +15,7 @@ OUTPUT_ROOT="$LOCAL_ROOT/output"
 # default parameters for local run
 MODEL_NAME='AdaRanker'
 DATA_TYPE='SeqRecDataset'
-DATASET_NAME="ml-100k-rank"
+DATASET_NAME="ml-100k-adaranker"
 verbose=2
 learning_rate=0.001
 epochs=100
@@ -25,7 +25,7 @@ batch_size=1024
 early_stop=5
 
 train_type="Base"
-base_model="SASRec"  # GRU
+base_model="GRU"  # GRU
 max_seq_len=20
 embedding_size=64
 dropout_prob=0.4
@@ -44,7 +44,7 @@ metrics="['auc','group_auc']"
 key_metric="group_auc"
 
 use_pre_item_emb=1
-item_emb_path="/home/v-lichengpan/.unirec/dataset/ml-100k-rank/item_emb_64.txt"
+item_emb_path="$HOME_DIR/.unirec/dataset/ml-100k-adaranker/item_emb_64.txt"
 
 use_wandb=0
 wandb_file=""
@@ -97,11 +97,4 @@ python unirec/main/main.py \
     --use_wandb=$use_wandb \
     --wandb_file=$wandb_file \
     --freeze=$freeze \
-    --base_model=$base_model \
-    --n_layers=$n_layers \
-    --n_heads=$n_heads \
-    --inner_size=$inner_size \
-    --hidden_dropout_prob=$hidden_dropout_prob \
-    --attn_dropout_prob=$attn_dropout_prob \
-    --hidden_act=$hidden_act \
-    --layer_norm_eps=$layer_norm_eps
+    --base_model=$base_model

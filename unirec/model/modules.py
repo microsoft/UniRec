@@ -433,7 +433,15 @@ class TransformerEncoder(nn.Module):
         return all_encoder_layers
 
 
-# Ada-Ranker
+r"""
+The NeuProcessEncoder class is an implementation of the Neural Process (NP) encoder described in the AdaRanker paper. 
+
+The NP encoder is used to approximate a stochastic process with learnable neural networks to model data distributions associated with a ranking request. It generates a latent embedding vector for each item in the candidate set using a two-layer MLP, then aggregates these latent vectors to generate a permutation-invariant representation via mean pooling. 
+
+This representation is then used to generate the mean vector and the variance vector. The data distribution is modeled by a random variable z, which is implemented with the reparameterization trick, making all the computational nodes in the model differentiable and gradients can be smoothly backpropagated. 
+
+The encoder is divided into two parts, one for encoding item embeddings and the other for encoding the latent vector z.
+"""
 class NeuProcessEncoder(nn.Module):
     def __init__(self, input_size=64, hidden_size=64, output_size=64, dropout_prob=0.4, device=None):
         super(NeuProcessEncoder, self).__init__()
@@ -482,6 +490,13 @@ class NeuProcessEncoder(nn.Module):
         return self.z
 
 
+r"""
+The AdaLinear class is an implementation of the Ada-Ranker model described in the AdaRanker paper. 
+
+Ada-Ranker is designed to modulate the latent representations of input sequences, which can be shared by different sequential recommendation models. This class provides a method to learn to generate two modulation coefficients, 𝛾 and 𝛽, through the conditional representation z. These coefficients are then used to adjust the latent representations of the item sequence.
+
+This class is also responsible for modulating the parameters of the scoring function g^{PRED}(·) using the idea of model patch. This involves generating parameter patches for the 𝑘-th hidden layer of the predictive layer according to the conditional representation z, then modulating the ranker's MLP parameters.
+"""
 class AdaLinear(nn.Module):
     def __init__(self, in_features: int, out_features: int, bias: bool = True, device=None, dtype=None):
         factory_kwargs = {'device': device, 'dtype': dtype}
@@ -567,7 +582,13 @@ class AdaLinear(nn.Module):
             self.in_features, self.out_features, self.bias is not None
         )
 
+r"""
+The MemoryUnit class implements a parameter memory network with L base parameters. 
 
+This network stores multiple base parameters and uses a linear combination of them to generate parameter patches. The coefficients for this linear combination are determined by a set of reading heads. 
+
+This class also provides a method for calculating the regularization loss for the memory unit.
+"""
 class MemoryUnit(nn.Module):
     # clusters_k is k keys
     def __init__(self, input_size, output_size, emb_size, clusters_k=10):

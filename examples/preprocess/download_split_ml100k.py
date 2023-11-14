@@ -148,6 +148,41 @@ def k_core_filter(df: pd.DataFrame, user_k=10, item_k=10, user_col_name='user_id
     return df
 
 
+
+def merge_category(data):
+    # Get cate2items and item2cate
+    # Merge categories containing a small number of items (lower than 200) into one category
+    print('\n>> Merging categories...')
+    cate2item = {}
+
+    for cate, item in tqdm(zip(data['cate_id'], data['item_id']), desc='get cate2items'):
+        for c in cate:
+            if c not in cate2item.keys():
+                cate2item[c] = set([])
+            cate2item[c].add(item)
+
+    large_cate, small_cate = [], []
+    for cate, items in cate2item.items():
+        if len(items) <= 50:
+            small_cate.append(cate)
+        else:
+            large_cate.append(cate)
+
+    cate2idx = {x[1]: x[0] + 1 for x in enumerate(large_cate)}
+    num_cates = len(large_cate) + 1
+    for sc in small_cate:
+        cate2idx[sc] = num_cates
+
+    item2cate = {}
+    for cate, item in tqdm(zip(data['cate_id'], data['item_id']), desc='get item2cate'):
+        new_cate = []
+        for c in cate:
+            new_cate.append(cate2idx[c])
+        item2cate[item] = new_cate
+
+    return cate2idx, item2cate, num_cates
+
+
 def prepare_ml100k():
     # Download MovieLens-100k
     url = "https://files.grouplens.org/datasets/movielens/ml-100k.zip"
@@ -174,6 +209,16 @@ def prepare_ml100k():
     rating_df = pd.read_csv(path, sep='\t', names=['userId', 'movieId', 'rating', 'timestamp'])
     rating_df.head(3)
 
+    cate_df = pd.read_csv(item_info_path, sep='|', header=None, encoding='ISO-8859-1')
+    cate_df.columns = ['movieId', 'movieName', 'releaseDate', 'nan', 'url'] + list(cate_df.columns[5:])
+    cate_df = cate_df.drop(columns=['movieName', 'releaseDate', 'nan', 'url'], axis=1)
+    cate_df['genre'] = cate_df.iloc[:, 1:].values.tolist()
+    cate_df['genre'] = cate_df['genre'].apply(lambda x: (np.array(x).nonzero()[0] + 1).tolist())
+    cate_df = cate_df[['movieId', 'genre']]
+    cate_df.columns = ['movieId', 'cateId']
+
+    # Merge item cate
+    rating_df = pd.merge(rating_df, cate_df, how='inner', on=['movieId'])
 
     user_col_name = 'userId'
     item_col_name='movieId'
@@ -192,18 +237,21 @@ def prepare_ml100k():
     print('k-core filtered dataset size: {0}'.format(data.shape))
 
     # Map
-    data = data.rename(columns={"userId": "user_id", "movieId": "item_id"})
+    data = data.rename(columns={"userId": "user_id", "movieId": "item_id", "cateId": "cate_id"})
+
+    cate2idx, item2cate, num_cates = merge_category(data)
 
     users, items = data['user_id'].unique(), data['item_id'].unique()
     num_users, num_items = len(users), len(items)
     user_id_map, item_id_map = {id: i+1 for i, id in enumerate(users)}, {id: i+1 for i, id in enumerate(items)}
-    data['item_id'], data['user_id'] = data['item_id'].apply(lambda x: item_id_map[x]), data['user_id'].apply(lambda x: user_id_map[x])
-    print(num_users, num_items)
+    data['item_id'], data['user_id'], data['cate_id'] = data['item_id'].apply(lambda x: item_id_map[x]), data['user_id'].apply(lambda x: user_id_map[x]), data['item_id'].apply(lambda x: list(item2cate[x]))
+    print(num_users, num_items, num_cates)
     map_info = {"user": {str(k): v for k, v in user_id_map.items()}, 
-                "item": {str(k): v for k, v in item_id_map.items()}}
+                "item": {str(k): v for k, v in item_id_map.items()}, 
+                "cate": {str(k): v for k, v in cate2idx.items()}}
+    itemid2cate = data.set_index('item_id')['cate_id'].to_dict()
 
-    data = data.rename(columns={'userId': 'user_id', 'movieId': 'item_id'})
-    data = data[['user_id', 'item_id']]
+    data = data[['user_id', 'item_id', 'cate_id']]
     user_col_name = 'user_id'
     item_col_name='item_id'
 
@@ -220,6 +268,9 @@ def prepare_ml100k():
     user_history['item_seq'] = user_history[item_col_name].apply(lambda x: ",".join(map(str,x)))
     user_history = user_history[[user_col_name, 'item_seq']]
 
+    df_train = df_train[[user_col_name, item_col_name]]
+    df_valid = df_valid[[user_col_name, item_col_name]]
+    df_test = df_test[[user_col_name, item_col_name]]
     df_train.to_csv(os.path.join(outpath, 'train.csv'), index=False, sep='\t')
     df_valid.to_csv(os.path.join(outpath, 'valid.csv'), index=False, sep='\t')
     df_test.to_csv(os.path.join(outpath, 'test.csv'), index=False, sep='\t')
@@ -228,6 +279,8 @@ def prepare_ml100k():
     with open(os.path.join(outpath, "map.json"), "w", encoding="utf-8") as jf:
         json.dump(map_info, jf)
 
+    with open(os.path.join(outpath, "item2cate.json"), "w", encoding="utf-8") as jf:
+        json.dump(itemid2cate, jf)
 
     # fake item price and item categories to obtain item meta file for MoRec
     num_items = data['item_id'].max() + 1   # padding_idx=0

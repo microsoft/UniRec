@@ -26,12 +26,12 @@ GLOBAL_CONF = {
     'base_model': 'GRU',
     'train_type': '',
     'dataloader': 'SeqRecDataset',
-    'dataset': 'ml-100k-rank',
-    'dataset_path': os.path.join(UNIREC_PATH, 'tests/.temp/data/ml-100k-rank'),
+    'dataset': 'ml-100k-adaranker',
+    'dataset_path': os.path.join(UNIREC_PATH, 'tests/.temp/data/ml-100k-adaranker'),
     'output_path': '',
     'learning_rate': 0.001,
     'use_pre_item_emb': 1,
-    'item_emb_path': os.path.join(UNIREC_PATH, 'tests/.temp/raw_datasets/ml-100k-rank/item_emb_32.txt'),
+    'item_emb_path': os.path.join(UNIREC_PATH, 'tests/.temp/raw_datasets/ml-100k-adaranker/item_emb_64.txt'),
     'loss_type': 'bce',
     'optimizer': 'adam',
     'has_user_bias': 0,
@@ -49,7 +49,7 @@ GLOBAL_CONF = {
     'key_metric': "group_auc",
     'shuffle_train': True,
     'early_stop': 15,
-    'embedding_size': 32,
+    'embedding_size': 64,
     'num_workers': 4,
     'num_workers_test': 0,
     'verbose': 2,
@@ -69,9 +69,9 @@ GLOBAL_CONF = {
 
 TRAIN_TYPES = ["Base", "Ada-Ranker"]  # train type of AdaRanker
 EXPECTED_METRICS = {
-    "Base": {"group_auc": 0.78812, "auc": 0.80083},
-    "Ada-Ranker": {"group_auc": 0.78296, "auc": 0.79590},
-    "Finetune": {"group_auc": 0.78610, "auc": 0.80376}
+    "Base": {"group_auc": 0.82051, "auc": 0.83659},
+    "Ada-Ranker": {"group_auc": 0.82042, "auc": 0.84495},
+    "Finetune": {"group_auc": 0.81818, "auc": 0.84085}
 }
 
 
@@ -81,7 +81,7 @@ EXPECTED_METRICS = {
         "data, model, train_types, expected_values",
         [
             (
-                "ml-100k-rank",
+                "ml-100k-adaranker",
                 "AdaRanker",
                 TRAIN_TYPES,
                 EXPECTED_METRICS
@@ -104,7 +104,7 @@ def test_train_end_to_end_pipeline(data, model, train_types, expected_values):
         "data, model, expected_values",
         [
             (
-                "ml-100k-rank",
+                "ml-100k-adaranker",
                 "AdaRanker",
                 EXPECTED_METRICS
             )

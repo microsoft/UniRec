@@ -8,6 +8,7 @@ import pandas as pd
 from tqdm import tqdm
 import numpy as np
 from gensim.models import Word2Vec
+from copy import deepcopy
 
 
 r'''
@@ -339,12 +340,193 @@ def run_rank(arguments):
     print(f'min item length: {min(lengths)}')
 
 
+def sample_while(candi_items, sampled_items_num, target_item, item_seq):
+    cur_sampled_items = []
+    while len(cur_sampled_items) < sampled_items_num:
+        sampled_item = random.sample(candi_items, 1)[0]
+        while (sampled_item == target_item) or (sampled_item in item_seq) or (sampled_item in cur_sampled_items):
+            sampled_item = random.sample(candi_items, 1)[0]
+        cur_sampled_items.append(sampled_item)
+
+    return cur_sampled_items
+
+
+def distritbuion_mixer_sampling(cate, tgt_item, cate_num, cate2item, cate2item_uni, n_neg_sample, item_to_remove):
+    sampled_cate = [cate]
+    multicate_num = random.sample([0, 1, 2], 1)[0]
+    sampled_cate += random.sample(range(1, cate_num+1), multicate_num)
+
+    sample_ratio = np.ones(len(sampled_cate)) / len(sampled_cate)
+    sample_num = np.random.multinomial(n_neg_sample, sample_ratio, size=1)[0]
+
+    sampled_items = []
+
+    seed = random.sample(range(0, 100), 1)[0]
+    for idx in range(len(sample_num)):
+        sampled_items_num = sample_num[idx]
+        if sampled_items_num == 0:
+            continue
+        cate = sampled_cate[idx]
+        # 50% universal 50% pop
+        if seed < 100: # universal
+            candi_items = cate2item_uni[cate]
+        else: # pop
+            candi_items = cate2item[cate]
+
+        cur_sampled_items = sample_while(candi_items, sampled_items_num, tgt_item, item_to_remove)
+        sampled_items += cur_sampled_items
+
+    return sampled_items
+
+
+r'''
+This function preprocesses the user history file and generates various output files for training, validation, and testing in T4 data format.
+
+Args:
+args: An argparse.Namespace object containing the following attributes:
+    - infile (str): The input file containing the raw data.
+    - item2cate_file (str): The file containing the item2cate information.
+    - outdir (str): The directory to store the output files.
+    - n_neg_k (int): The number of negative samples for each positive sample (default is 5).
+
+Outputs:
+The function generates the following files in the output directory:
+    - train.txt
+    - valid.txt
+    - test.txt
+    - user_history.txt
+    - user2uid.txt
+    - item2tid.txt
+    - cate2cid.txt
+
+Example:
+    Input data format (user, item1, item2, ..., itemN):
+    1 101 102 103
+    2 201 202 203 204
+    3 301 302 303 304 305
+
+    Input summary:
+        n_users  : 3
+        n_items  : 12
+
+    Output train samples (user, item_list, label_list):
+        1 1,8,12,10,4,6 1,0,0,0,0,0
+        2 4,2,9,11,1,10 1,0,0,0,0,0
+        2 5,3,1,10,12,2 1,0,0,0,0,0
+        ...
+    Output valid samples (user, item_list, label_list):
+        1 2,4,7,10,11,8 1,0,0,0,0,0
+        ...  
+    Output test samples (user, item_list, label_list):
+        1 3,6,12,11,4,9 1,0,0,0,0,0
+        ...
+'''
+def run_adaranker(arguments):
+    wt_train = open(arguments['train_file'], 'w')
+    wt_valid = open(arguments['valid_file'], 'w')
+    wt_test = open(arguments['test_file'], 'w')
+    wt_user_history = open(arguments['user_history_file'], 'w')
+
+    pos_user_history = dict()
+    all_item_set = set()
+    lengths = []
+    train_pos_items = []
+    valid_pos_items = []
+    test_pos_items = []
+    _cnt = 0
+    with open(arguments['infile'], 'r') as rd:
+        for line in rd.readlines():
+            words = line.strip().split(' ')
+            user, items = words[0], words[1:]
+            item_set = set()
+            dedup_items = []
+            for item in items:
+                if item not in item_set:
+                    item_set.add(item)
+                    dedup_items.append(item)
+            items = dedup_items
+            _cnt += len(items)
+            item_len = len(items)
+            if item_len < 3:
+                continue
+            lengths.append(item_len)
+            train_pos_items.append(items[:-2])  # flatten the train items
+            valid_pos_items.append(items[-2])
+            test_pos_items.append(items[-1])
+
+            pos_user_history[user] = items
+            all_item_set = all_item_set | item_set
+    print(f"#. intersections: {_cnt}.")
+
+    sorted_user_list = sorted(set(pos_user_history.keys()), key=int)
+    n_users = len(sorted_user_list)
+    all_item_list = sorted(all_item_set, key=int)
+    n_items = len(all_item_list)
+
+    item2cate = json.load(open(arguments['item2cate_file'], 'r'))
+    all_cate_set = set()
+    cate2item = {}
+    for item, cate in item2cate.items():
+        for c in cate:
+            if c not in cate2item.keys():
+                cate2item[c] = []
+            cate2item[c].append(item)
+        all_cate_set = all_cate_set | set(cate)
+    cate2item_uni = deepcopy(cate2item)
+    for k, v in cate2item_uni.items():
+        cate2item_uni[k] = list(set(v))
+    all_cate_set = sorted(all_cate_set, key=int)
+    n_cates = len(all_cate_set)
+
+    # plus 1 for history zero padding
+    user2uid = {user: uid for user, uid in zip(sorted_user_list, range(1, n_users+1))}
+    item2tid = {item: tid for item, tid in zip(all_item_list, range(1, n_items+1))}
+    cate2cid = {cate: cid for cate, cid in zip(all_cate_set, range(1, n_cates+1))}
+
+    write_dict_to_file(user2uid, arguments['user2uid_file'])
+    write_dict_to_file(item2tid, arguments['item2tid_file'])
+    write_dict_to_file(cate2cid, arguments['cate2cid_file'])
+
+    def write_to_file(wt, user, items, labels=None):
+        uid = user2uid[user]
+        tids = [str(item2tid[item]) for item in items]
+        data_str = f"{uid} {','.join(tids)}"
+        data_str += f" {','.join(labels)}\n" if labels is not None else "\n"
+        wt.write(data_str)
+
+    n_neg_k = arguments['n_neg_k']
+    labels = ['1'] + ['0'] * n_neg_k
+    for (user, hist), itrains, ivalid, itest in tqdm(zip(pos_user_history.items(), train_pos_items, valid_pos_items, test_pos_items), desc="data splitting and negative sampling", total=n_users):
+        for itrain in itrains:
+            for cate_ in item2cate[itrain]:
+                train_items = [itrain] + distritbuion_mixer_sampling(cate_, itrain, n_cates, cate2item, cate2item_uni, n_neg_k, hist)
+                write_to_file(wt_train, user, train_items, labels)
+
+        for cate_ in item2cate[ivalid]:
+            valid_items = [ivalid] + distritbuion_mixer_sampling(cate_, ivalid, n_cates, cate2item, cate2item_uni, n_neg_k, hist)
+            write_to_file(wt_valid, user, valid_items, labels)
+
+        for cate_ in item2cate[itest]:
+            test_items = [itest] + distritbuion_mixer_sampling(cate_, itest, n_cates, cate2item, cate2item_uni, n_neg_k, hist)
+            write_to_file(wt_test, user, test_items, labels)
+
+        write_to_file(wt_user_history, user, hist[:-1])
+
+    wt_train.close()
+    wt_valid.close()
+    wt_test.close()
+    wt_user_history.close()
+
+    print(f'max item length: {max(lengths)}')
+    print(f'min item length: {min(lengths)}')
+
+
 def load_item_seq(data):
     print(data['item_seq'].apply(max))
     item_num = max(data['item_seq'].apply(max))
     # print('item_num', item_num)
     corpus = []
-    for userid, item_seq in tqdm(zip(data.user_id, data.item_seq), desc='load item_seq'):
+    for item_seq in tqdm(data.item_seq, desc='load item_seq'):
         seq_ = []
         for token in item_seq:
             seq_.append(str(token))
@@ -354,10 +536,8 @@ def load_item_seq(data):
 
 
 def emb2str(embedding):
-    str_emb = ''
-    for element in embedding:
-        str_emb += (str('%.6f' % element) + ',')
-    return str_emb[:-1]
+    str_emb = ','.join([str('%.6f' % element) for element in embedding])
+    return str_emb
 
 
 def pretrain_word2vec(arguments):
@@ -372,13 +552,12 @@ def pretrain_word2vec(arguments):
     print(user2itemseq)
 
     corpus, item_num = load_item_seq(user2itemseq)
-    
+
     vector_size = arguments['embedding_size']
     w2v_model = Word2Vec(corpus, vector_size=vector_size, window=10, min_count=3, workers=4)
-    w2v_model.save(outfile_path+"/word2vec.model")
+    w2v_model.save(os.path.join(outfile_path, "word2vec.model"))
 
-
-    fp = open(outfile_path+'/item_emb_'+str(vector_size)+'.txt', 'w')
+    fp = open(os.path.join(outfile_path, 'item_emb_'+str(vector_size)+'.txt'), 'w')
     for i in tqdm(range(1, item_num+1), desc='output Item Emb'):
         try:
             item_emb = w2v_model.wv[str(i)]
@@ -395,9 +574,10 @@ def parse_cmd_arguments():
     arguments.add_argument('--infile', type=str)
     arguments.add_argument('--outdir', type=str)
     arguments.add_argument('--n_neg_k', type=int, default=5)
-    arguments.add_argument('--data_format', type=str, default='libfm', choices=["libfm", "rank"])
+    arguments.add_argument('--data_format', type=str, default='libfm', choices=["libfm", "rank", "adaranker"])
     arguments.add_argument('--sep', type=str, default=",")
     arguments.add_argument('--prefile_file_format', type=str, default="user-item")
+    arguments.add_argument('--item2cate_file', type=str)
     arguments.add_argument('--pretrain_word2vec', type=int, default=1)
     arguments.add_argument('--embedding_size', type=int, default=64)
 
@@ -420,6 +600,7 @@ def main(arguments):
     arguments['user_history_file'] = os.path.join(outdir, 'user_history.txt')
     arguments['user2uid_file'] = os.path.join(outdir, 'user2uid.txt')
     arguments['item2tid_file'] = os.path.join(outdir, 'item2tid.txt')
+    arguments['cate2cid_file'] = os.path.join(outdir, 'cate2cid.txt')
 
     if arguments['prefile']:
         data_formatting(arguments['prefile'], arguments['infile'], arguments['sep'], arguments['prefile_file_format'])
@@ -433,9 +614,13 @@ def main(arguments):
     elif arguments['data_format'] == 'rank':
         run_rank(arguments)
 
+    elif arguments['data_format'] == 'adaranker':
+        assert arguments['item2cate_file'] is not None, "You need provide item2cate file for negative sampling in Ada-Ranker"
+        run_adaranker(arguments)
+
     else:
         raise ValueError(f"Unsupported data format: {arguments['data_format']}")
-    
+
     if arguments['pretrain_word2vec']:
         pretrain_word2vec(arguments)
 

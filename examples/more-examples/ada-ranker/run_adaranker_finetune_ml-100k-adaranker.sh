@@ -5,7 +5,7 @@
 
 # root
 HOME_DIR=$(eval echo ~)
-LOCAL_ROOT="$HOME_DIR/workspace/microsoft/UniRec"
+LOCAL_ROOT="$HOME_DIR/workspace/UniRec"
 
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
@@ -15,8 +15,7 @@ OUTPUT_ROOT="$LOCAL_ROOT/output"
 # default parameters for local run
 MODEL_NAME='AdaRanker'
 DATA_TYPE='SeqRecDataset'
-# DATASET_NAME="ml-10m-rank"
-DATASET_NAME="ml-100k-rank"
+DATASET_NAME="ml-100k-adaranker"
 verbose=2
 learning_rate=0.001
 epochs=100
@@ -34,9 +33,8 @@ metrics="['auc','group_auc']"
 key_metric="group_auc"
 train_type="Ada-Ranker"
 
-use_pre_item_emb=1
-# item_emb_path="/home/v-lichengpan/workspace/microsoft/UniRec/data/ml-10m-rank/item_emb_64.txt"
-item_emb_path="/home/v-lichengpan/.unirec/dataset/ml-100k-rank/item_emb_64.txt"
+use_pre_item_emb=0
+item_emb_path="$HOME_DIR/.unirec/dataset/ml-100k-adaranker/item_emb_64.txt"
 
 # metrics="['hit@10;20;100', 'ndcg@10;20;100','mrr@10;20;100']"
 # key_metric="mrr@100"
@@ -46,7 +44,8 @@ wandb_file=""
 freeze=1
 early_stop=5
 load_pretrained_model=1
-model_file="/home/v-lichengpan/workspace/microsoft/UniRec/output/ml-100k-rank/AdaRanker/train/checkpoint_2023-10-30_182359_1/AdaRanker.pth"
+checkpoint="checkpoint_2023-11-14_015628_98"
+model_file="$LOCAL_ROOT/output/ml-100k-adaranker/AdaRanker/train/$checkpoint/$MODEL_NAME.pth"
 
 
 cd $MY_DIR
