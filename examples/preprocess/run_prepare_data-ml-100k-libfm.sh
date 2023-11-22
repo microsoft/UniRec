@@ -1,11 +1,19 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+###############################################################################################
+### Please modify the following variables according to your device and mission requirements ###
+###############################################################################################
 RAW_DATA_PREFILE="/path/to/UniRec/data/ml-100k/user_history.csv"
 RAW_DATA_FILE="/path/to/raw_datasets/ml-100k-libfm/ml-100k-libfm.txt"
 RAW_DATA_DIR="/path/to/raw_datasets"
 
 ROOT_DIR='/path/to/UniRec'
+
+
+###############################################################################################
+############################## default parameters for local run ###############################
+###############################################################################################
 MY_DIR=$ROOT_DIR
 DATA_ROOT="$ROOT_DIR/data"
 OUTPUT_ROOT="$ROOT_DIR/output"

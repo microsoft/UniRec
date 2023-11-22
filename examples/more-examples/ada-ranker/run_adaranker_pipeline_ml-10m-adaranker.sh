@@ -8,7 +8,7 @@
 ###############################################################################################
 HOME_DIR=$(eval echo ~)  # root
 LOCAL_ROOT="$HOME_DIR/workspace/UniRec"
-DATASET_NAME="ml-100k-adaranker"  # ml-100k-adaranker
+DATASET_NAME="ml-10m-adaranker"  # ml-100k-adaranker
 
 pipelines=(0 1 2)  # 0: train base, 1: train ada-ranker, 2: train base + ada-ranker
 
@@ -29,19 +29,19 @@ DATA_TYPE='SeqRecDataset'
 verbose=2
 learning_rate=0.001
 epochs=100
-dropout_prob=0.6
+dropout_prob=0.4
 n_sample_neg_train=0  #400
 history_mask_mode='autoregressive'
-batch_size=256
+batch_size=1024
 base_model="GRU"
 loss_type='bce'
 group_size=-1
 metrics="['auc','group_auc']"
 key_metric="group_auc"
-early_stop=15
+early_stop=5
 
 if [ $DATASET_NAME == "ml-100k-adaranker" ]; then
-    max_seq_len=10
+    max_seq_len=20
 elif [ $DATASET_NAME == "ml-10m-adaranker" ]; then
     max_seq_len=200
 fi

@@ -3,12 +3,18 @@
 
 #!/bin/bash
 
-# root
+###############################################################################################
+### Please modify the following variables according to your device and mission requirements ###
+###############################################################################################
 HOME_DIR=$(eval echo ~)
 LOCAL_ROOT='$HOME_DIR/working_dir/UniRec'
-
-MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$HOME_DIR/blob/final_data/unirec_data"
+
+
+###############################################################################################
+############################## default parameters for local run ###############################
+###############################################################################################
+MY_DIR=$LOCAL_ROOT
 OUTPUT_ROOT="$LOCAL_ROOT/output"
 cd $MY_DIR
 export PYTHONPATH=$PWD

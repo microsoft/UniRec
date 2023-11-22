@@ -4,10 +4,16 @@
 #!/bin/bash
 # pre-train on one locale dataset with feature embedding and text embedding
 
+###############################################################################################
+### Please modify the following variables according to your device and mission requirements ###
+###############################################################################################
+HOME_DIR=$(eval echo ~)
+LOCAL_ROOT='$HOME_DIR/UniRec'
 
-# root
-LOCAL_ROOT='$HOME_DIR/UniRec/'
 
+###############################################################################################
+############################## default parameters for local run ###############################
+###############################################################################################
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$HOME_DIR/UniRec/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output"

@@ -340,17 +340,47 @@ def run_rank(arguments):
     print(f'min item length: {min(lengths)}')
 
 
-def sample_while(candi_items, sampled_items_num, target_item, item_seq):
+"""
+This function samples a specified number of items from a list of candidate items, excluding the target item and items already in the sequence.
+"""
+def sample_items_from_candidates(candi_items, sampled_items_num, target_item, item_seq):
+    unique_candi_items = None
+    max_retry_cnt = 100
+
     cur_sampled_items = []
-    while len(cur_sampled_items) < sampled_items_num:
-        sampled_item = random.sample(candi_items, 1)[0]
-        while (sampled_item == target_item) or (sampled_item in item_seq) or (sampled_item in cur_sampled_items):
+    for _ in range(sampled_items_num):
+        _cnt = 0
+        sampled_flag = False
+        while _cnt < max_retry_cnt:
             sampled_item = random.sample(candi_items, 1)[0]
+            _cnt += 1
+            sampled_flag = not ((sampled_item == target_item) or (sampled_item in item_seq) or (sampled_item in cur_sampled_items))
+            if sampled_flag:
+                break
+        if _cnt == max_retry_cnt and not sampled_flag:
+            if unique_candi_items is None:
+                unique_candi_items = set(candi_items) - set([target_item] + item_seq)
+            else:
+                unique_candi_items = _unique_candi_items
+            _unique_candi_items = unique_candi_items - set(cur_sampled_items)
+            if len(_unique_candi_items) == 0:
+                raise ValueError("No candidate items to sample from, you may need to decrease the number of negative samples.")
+            _candi_items = [item for item in candi_items if item in _unique_candi_items]
+            sampled_item = random.sample(_candi_items, 1)[0]
         cur_sampled_items.append(sampled_item)
 
     return cur_sampled_items
 
 
+r'''
+This function implements a negative sampling strategy for generating negative samples for Ada-Ranker.
+
+The function operates as follows:
+    1. Determines the categories to sample from, including the positive item's category and up to two additional random categories.
+    2. Determines the number of samples to draw from each category using a multinomial distribution with equal probabilities for each category.
+    3. For each category to draw samples from, it decides randomly whether to draw from a uniform distribution of items or a popularity-biased distribution.
+    4. Draws the specified number of samples from the chosen category and distribution, excluding the positive item and any other items specified in item_to_remove.
+'''
 def distritbuion_mixer_sampling(cate, tgt_item, cate_num, cate2item, cate2item_uni, n_neg_sample, item_to_remove):
     sampled_cate = [cate]
     multicate_num = random.sample([0, 1, 2], 1)[0]
@@ -366,14 +396,14 @@ def distritbuion_mixer_sampling(cate, tgt_item, cate_num, cate2item, cate2item_u
         sampled_items_num = sample_num[idx]
         if sampled_items_num == 0:
             continue
-        cate = sampled_cate[idx]
+        cate_ = sampled_cate[idx]
         # 50% universal 50% pop
-        if seed < 100: # universal
-            candi_items = cate2item_uni[cate]
-        else: # pop
-            candi_items = cate2item[cate]
+        if seed < 50:  # universal
+            candi_items = cate2item_uni[cate_]
+        else:  # pop
+            candi_items = cate2item[cate_]
 
-        cur_sampled_items = sample_while(candi_items, sampled_items_num, tgt_item, item_to_remove)
+        cur_sampled_items = sample_items_from_candidates(candi_items, sampled_items_num, tgt_item, item_to_remove)
         sampled_items += cur_sampled_items
 
     return sampled_items
@@ -466,12 +496,14 @@ def run_adaranker(arguments):
     item2cate = json.load(open(arguments['item2cate_file'], 'r'))
     all_cate_set = set()
     cate2item = {}
-    for item, cate in item2cate.items():
-        for c in cate:
-            if c not in cate2item.keys():
-                cate2item[c] = []
-            cate2item[c].append(item)
-        all_cate_set = all_cate_set | set(cate)
+    for items in pos_user_history.values():
+        for item in items:
+            cate = item2cate[item]
+            for c in cate:
+                if c not in cate2item.keys():
+                    cate2item[c] = []
+                cate2item[c].append(item)
+            all_cate_set = all_cate_set | set(cate)
     cate2item_uni = deepcopy(cate2item)
     for k, v in cate2item_uni.items():
         cate2item_uni[k] = list(set(v))
@@ -497,20 +529,22 @@ def run_adaranker(arguments):
     n_neg_k = arguments['n_neg_k']
     labels = ['1'] + ['0'] * n_neg_k
     for (user, hist), itrains, ivalid, itest in tqdm(zip(pos_user_history.items(), train_pos_items, valid_pos_items, test_pos_items), desc="data splitting and negative sampling", total=n_users):
-        for itrain in itrains:
-            for cate_ in item2cate[itrain]:
-                train_items = [itrain] + distritbuion_mixer_sampling(cate_, itrain, n_cates, cate2item, cate2item_uni, n_neg_k, hist)
-                write_to_file(wt_train, user, train_items, labels)
+        st_idx = 0 if len(hist) <= 10 else len(hist) - 10
+        for j, itrain in enumerate(itrains):
+            if j >= st_idx:
+                for cate_ in item2cate[itrain]:
+                    train_items = [itrain] + distritbuion_mixer_sampling(cate2cid[cate_], itrain, n_cates, cate2item, cate2item_uni, n_neg_k, hist[:j])
+                    write_to_file(wt_train, user, train_items, labels)
 
         for cate_ in item2cate[ivalid]:
-            valid_items = [ivalid] + distritbuion_mixer_sampling(cate_, ivalid, n_cates, cate2item, cate2item_uni, n_neg_k, hist)
+            valid_items = [ivalid] + distritbuion_mixer_sampling(cate2cid[cate_], ivalid, n_cates, cate2item, cate2item_uni, n_neg_k, hist[:-2])
             write_to_file(wt_valid, user, valid_items, labels)
 
         for cate_ in item2cate[itest]:
-            test_items = [itest] + distritbuion_mixer_sampling(cate_, itest, n_cates, cate2item, cate2item_uni, n_neg_k, hist)
+            test_items = [itest] + distritbuion_mixer_sampling(cate2cid[cate_], itest, n_cates, cate2item, cate2item_uni, n_neg_k, hist[:-1])
             write_to_file(wt_test, user, test_items, labels)
 
-        write_to_file(wt_user_history, user, hist[:-1])
+        write_to_file(wt_user_history, user, hist)
 
     wt_train.close()
     wt_valid.close()
@@ -521,6 +555,9 @@ def run_adaranker(arguments):
     print(f'min item length: {min(lengths)}')
 
 
+"""
+This function processes a given pandas DataFrame to extract item sequences and the maximum item number.
+"""
 def load_item_seq(data):
     print(data['item_seq'].apply(max))
     item_num = max(data['item_seq'].apply(max))
@@ -535,11 +572,17 @@ def load_item_seq(data):
     return corpus, item_num
 
 
+"""
+This function converts an embedding (a list or array of numbers) into a string.
+"""
 def emb2str(embedding):
     str_emb = ','.join([str('%.6f' % element) for element in embedding])
     return str_emb
 
 
+"""
+This function pretrains a Word2Vec model using user-item interaction data to get item embeddings.
+"""
 def pretrain_word2vec(arguments):
     # load data
     print('\nTraining word2vec...')
@@ -562,7 +605,7 @@ def pretrain_word2vec(arguments):
         try:
             item_emb = w2v_model.wv[str(i)]
         except:
-            item_emb = np.zeros((vector_size,), dtype=np.float)
+            item_emb = np.zeros((vector_size,), dtype=float)
         str_emb = emb2str(item_emb)
         fp.write('{0}{1}{2}\n'.format(i, '\t', str_emb))
     fp.close()

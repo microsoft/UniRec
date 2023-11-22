@@ -23,6 +23,8 @@ GLOBAL_CONF = {
     'exp_name': 'pytest',
     'checkpoint_dir': f'{datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")}',
     'model': '',
+    'base_model': 'GRU',
+    'train_type': 'Ada-Ranker',
     'dataloader': '',
     'dataset': '',
     'dataset_path': os.path.join(UNIREC_PATH, 'tests/.temp/data'),
@@ -59,21 +61,25 @@ GLOBAL_CONF = {
     'hidden_dropout_prob': 0.11175639972166328,
     'attn_dropout_prob': 0.22652963648975333,
     'max_seq_len': 10,
-    'seed': 2023
+    'seed': 2023,
+    'freeze': 0,
 }
 
-RANK_SGD_MODELS = ["FM", "BST"]  # models optimized by SGD
+RANK_SGD_MODELS = ["FM", "BST", "AdaRanker"]  # models optimized by SGD
 EXPECTED_METRICS = {
     "FM": {"group_auc": 0.79453, "auc": 0.81613},
-    "BST": {"group_auc": 0.83397, "auc": 0.85084}
+    "BST": {"group_auc": 0.83397, "auc": 0.85084},
+    "AdaRanker": {"group_auc": 0.78692, "auc": 0.82794}
 }
 MODEL2DATASET = {
     "FM": "ml-100k-libfm",
-    "BST": "ml-100k-rank"
+    "BST": "ml-100k-rank",
+    "AdaRanker": "ml-100k-adaranker"
 }
 MODEL2DATALOADER = {
     "FM": "RankDataset",
-    "BST": "SeqRecDataset"
+    "BST": "SeqRecDataset",
+    "AdaRanker": "SeqRecDataset"
 }
 
 
@@ -103,6 +109,15 @@ def test_train_pipeline(models, expected_values):
             config['learning_rate'] = 0.001
             config['embedding_size'] = 80
             config['group_size'] = 21
+        elif model == 'AdaRanker':
+            config['epochs'] = 100
+            config['learning_rate'] = 0.001
+            config['embedding_size'] = 64
+            config['key_metric'] = 'group_auc'
+            config['dropout_prob'] = 0.6
+            config['max_seq_len'] = 10
+            config['use_pre_item_emb'] = 1
+            config['item_emb_path'] = os.path.join(UNIREC_PATH, 'tests/.temp/raw_datasets/ml-100k-adaranker/item_emb_64.txt')
         exp_value = expected_values[model]
         result = main.run(config)
         for k, v in exp_value.items():
@@ -136,6 +151,15 @@ def test_eval_pipeline(models, expected_values):
             config['learning_rate'] = 0.001
             config['embedding_size'] = 80
             config['group_size'] = 21
+        elif model == 'AdaRanker':
+            config['epochs'] = 100
+            config['learning_rate'] = 0.001
+            config['embedding_size'] = 64
+            config['key_metric'] = 'group_auc'
+            config['dropout_prob'] = 0.6
+            config['max_seq_len'] = 10
+            config['use_pre_item_emb'] = 1
+            config['item_emb_path'] = os.path.join(UNIREC_PATH, 'tests/.temp/raw_datasets/ml-100k-adaranker/item_emb_64.txt')
         exp_value = expected_values[model]
         result = main.run(config)
         for k, v in exp_value.items():
@@ -167,10 +191,19 @@ def test_infer_pipeline(models):
             config['learning_rate'] = 0.001
             config['embedding_size'] = 80
             config['group_size'] = 21
+        elif model == 'AdaRanker':
+            config['epochs'] = 100
+            config['learning_rate'] = 0.001
+            config['embedding_size'] = 64
+            config['key_metric'] = 'group_auc'
+            config['dropout_prob'] = 0.6
+            config['max_seq_len'] = 10
+            config['use_pre_item_emb'] = 1
+            config['item_emb_path'] = os.path.join(UNIREC_PATH, 'tests/.temp/raw_datasets/ml-100k-adaranker/item_emb_64.txt')
         result = main.run(config)
         shape.add(result.shape)
 
-    assert len(shape) == 1, "shapes of scores infered by those models are different"
+    assert len(shape) == 2, "shapes of scores infered by those models are different"
 
 
 if __name__ == "__main__":

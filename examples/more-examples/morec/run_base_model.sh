@@ -3,10 +3,18 @@
 
 #!/bin/bash 
 
-## No arguments, which means local execution
+###############################################################################################
+### Please modify the following variables according to your device and mission requirements ###
+###############################################################################################
 HOME_DIR=$(eval echo ~)
 LOCAL_ROOT='$HOME_DIR/work/UniRec' 
 
+wandb_file="$LOCAL_ROOT/unirec/shell/morec/wandb.yaml"
+
+
+###############################################################################################
+############################## default parameters for local run ###############################
+###############################################################################################
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output" 
@@ -79,7 +87,7 @@ python unirec/main/main.py \
     --checkpoint_dir=$checkpoint_dir \
     --exp_name=$exp_name \
     --use_wandb=0 \
-    --wandb_file="$LOCAL_ROOT/unirec/shell/morec/wandb.yaml"
+    --wandb_file=$wandb_file
 # done
 # done
 

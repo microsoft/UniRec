@@ -1,14 +1,22 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+###############################################################################################
+### Please modify the following variables according to your device and mission requirements ###
+###############################################################################################
 HOME_DIR=$(eval echo ~)
 
 RAW_DATA_DIR="$HOME_DIR/.unirec/dataset"
+ROOT_DIR='/path/to/UniRec'
+
+
+###############################################################################################
+############################## default parameters for local run ###############################
+###############################################################################################
 RAW_DATA_PREFILE="$RAW_DATA_DIR/ml-100k/full_user_history.csv"
 ITEM2CATE_FILE="$RAW_DATA_DIR/ml-100k/item2cate.json"
 RAW_DATA_FILE="$RAW_DATA_DIR/ml-100k-adaranker/ml-100k-adaranker.txt"
 
-ROOT_DIR='/path/to/UniRec'
 MY_DIR=$ROOT_DIR
 DATA_ROOT="$ROOT_DIR/data"
 OUTPUT_ROOT="$ROOT_DIR/output"

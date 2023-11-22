@@ -1,10 +1,16 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+###############################################################################################
+### Please modify the following variables according to your device and mission requirements ###
+###############################################################################################
 HOME_DIR=$(eval echo ~)
-
 ROOT_DIR="$HOME_DIR/work/UniRec"    # Your path to UniRec
 
+
+###############################################################################################
+############################## default parameters for local run ###############################
+###############################################################################################
 RAW_DATA_DIR="$HOME_DIR/.unirec/dataset/ml-100k"
 
 MY_DIR=$ROOT_DIR

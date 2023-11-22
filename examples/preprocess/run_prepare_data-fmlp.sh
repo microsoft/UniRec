@@ -1,10 +1,17 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT license.
 
+###############################################################################################
+### Please modify the following variables according to your device and mission requirements ###
+###############################################################################################
 RAW_DATA_FILE="/path/to/datasets/data/Beauty.txt"
 RAW_DATA_DIR="/path/to/fmlp"
 
-ROOT_DIR='/home/jialia/adaretriever/UniRec'
+ROOT_DIR='/path/to/UniRec'
+
+###############################################################################################
+############################## default parameters for local run ###############################
+###############################################################################################
 MY_DIR=$ROOT_DIR
 DATA_ROOT="$ROOT_DIR/data"
 OUTPUT_ROOT="$ROOT_DIR/output"

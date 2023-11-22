@@ -3,24 +3,34 @@
 
 #!/bin/bash
 # get scores of a set of items for every user in valid set and test set,  and save the scores in a file
-# root
+
+###############################################################################################
+### Please modify the following variables according to your device and mission requirements ###
+###############################################################################################
 HOME_DIR=$(eval echo ~)
 LOCAL_ROOT='$HOME_DIR/working_dir/UniRec'
 
-MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$HOME_DIR/blob/final_data/unirec_data"
-
-# default parameters for local run
-DATASET_NAME="ES_final_dataset"  #"x-engmt-1m" #"Beauty"   
-
-cd $MY_DIR
-export PYTHONPATH=$PWD
 
 model_file="$HOME_DIR/blob/output/ES_final_dataset/Avghist/train/checkpoint_2023-06-07_115922_2/AvgHist-AvgHist.pth"
 output_path="$HOME_DIR/blob/output/ES_final_dataset/Avghist/train/checkpoint_2023-06-07_115922_2/"
 valid_item_file="$HOME_DIR/data/ES_data/valid_merged_items.txt"
 test_item_file="$HOME_DIR/data/ES_data/test_merged_items.txt"
+
 # features_filepath="$HOME_DIR/blob/final_data/unirec_data/DE_final_dataset/id2features_2.csv"
+
+
+###############################################################################################
+############################## default parameters for local run ###############################
+###############################################################################################
+MY_DIR=$LOCAL_ROOT
+
+
+DATASET_NAME="ES_final_dataset"  #"x-engmt-1m" #"Beauty"   
+
+cd $MY_DIR
+export PYTHONPATH=$PWD
+
 ### valid user ###################################
 # CUDA_VISIBLE_DEVICES='0,1' torchrun --nnodes=1 --nproc_per_node=2 --rdzv_backend=c10d --rdzv_endpoint=127.0.0.1:29400 unirec/main/reco_topk.py \
 CUDA_VISIBLE_DEVICES=0 python unirec/main/reco_topk.py \

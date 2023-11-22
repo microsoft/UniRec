@@ -4,7 +4,7 @@ n_items: 1017
 n_neg_test_from_sampling: 0
 n_neg_train_from_sampling: 0
 n_neg_valid_from_sampling: 0
-n_users: 939
+n_users: 940
 test_file_format: label-index_group-value_group
 train_file_format: label-index_group-value_group
 user_history_file_format: user-item_seq

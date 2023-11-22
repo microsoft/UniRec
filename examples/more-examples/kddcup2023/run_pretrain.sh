@@ -4,18 +4,26 @@
 #!/bin/bash
 # pre-train on one locale dataset with feature embedding and text embedding
 
-
-# root
+###############################################################################################
+### Please modify the following variables according to your device and mission requirements ###
+###############################################################################################
 HOME_DIR=$(eval echo ~)
 LOCAL_ROOT='$HOME_DIR/working_dir/UniRec'
 
-MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$HOME_DIR/blob/final_data/unirec_data"
+
+text_emb_path='$HOME_DIR/blob/final_data/unirec_data/ES_final_dataset/text_embs/addnextitem_mean_mbart/item_embeddings_nid.csv'
+features_filepath='$HOME_DIR/blob/final_data/unirec_data/ES_final_dataset/id2features_2.csv'
+wandb_file="$LOCAL_ROOT/unirec/shell/kddcup2023/wandb.yaml"
+
+
+###############################################################################################
+############################## default parameters for local run ###############################
+###############################################################################################
+MY_DIR=$LOCAL_ROOT
 OUTPUT_ROOT="$LOCAL_ROOT/output"
 
 
-
-# default parameters for local run
 MODEL_NAME='SASRec' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU, SASRec, ConvFormer, MultiVAE]
 DATA_TYPE='SeqRecDataset' #AERecDataset BaseDataset SeqRecDataset
 DATASET_NAME="ES_final_dataset"
@@ -79,10 +87,10 @@ python unirec/main/main.py \
     --scheduler_factor=0.1209259552381572 \
     --tau=0.6952599498943698 \
     --use_text_emb=1 \
-    --text_emb_path='$HOME_DIR/blob/final_data/unirec_data/ES_final_dataset/text_embs/addnextitem_mean_mbart/item_embeddings_nid.csv' \
+    --text_emb_path=$text_emb_path \
     --text_emb_size=1024 \
     --use_features=1 \
-    --features_filepath='$HOME_DIR/blob/final_data/unirec_data/ES_final_dataset/id2features_2.csv'  \
+    --features_filepath=$features_filepath  \
     --features_shape='[3489, 99]' \
     --use_wandb=0 \
-    --wandb_file="$LOCAL_ROOT/unirec/shell/kddcup2023/wandb.yaml"
+    --wandb_file=$wandb_file

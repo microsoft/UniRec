@@ -3,16 +3,24 @@
 
 #!/bin/bash
 
-# root
+###############################################################################################
+### Please modify the following variables according to your device and mission requirements ###
+###############################################################################################
 HOME_DIR=$(eval echo ~)
 LOCAL_ROOT='$HOME_DIR/workspace/UniRec'
 
+use_wandb=1
+wandb_file="$LOCAL_ROOT/unirec/shell/test_rankers/wandb.yaml"
+
+
+###############################################################################################
+############################## default parameters for local run ###############################
+###############################################################################################
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output"
 
 
-# default parameters for local run
 MODEL_NAME='BST'
 DATA_TYPE='SeqRecDataset'
 DATASET_NAME="ml-100k-rank"
@@ -38,9 +46,6 @@ key_metric="auc"
 
 # metrics="['hit@10;20;100', 'ndcg@10;20;100','mrr@10;20;100']"
 # key_metric="mrr@100"
-
-use_wandb=1
-wandb_file="$LOCAL_ROOT/unirec/shell/test_rankers/wandb.yaml"
 
 
 cd $MY_DIR

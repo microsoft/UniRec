@@ -3,16 +3,28 @@
 
 #!/bin/bash
 
-# root
+###############################################################################################
+### Please modify the following variables according to your device and mission requirements ###
+###############################################################################################
 HOME_DIR=$(eval echo ~)
 LOCAL_ROOT='$HOME_DIR/workspace/UniRec'
 
+# task="test"
+# model_file="$HOME_DIR/workspace/UniRec/output/Beauty/FM/train/checkpoint_2023-08-28_063744_32/FM.pth"
+# model_file="$HOME_DIR/workspace/UniRec/output/Beauty/FM/train_pre/xlearn-ckpt_20230822/FM.txt"
+
+task="train"
+model_file=""
+
+
+###############################################################################################
+############################## default parameters for local run ###############################
+###############################################################################################
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output"
 
 
-# default parameters for local run
 MODEL_NAME='FM'
 DATA_TYPE='RankDataset'
 DATASET_NAME="ml-100k-libfm"
@@ -38,13 +50,6 @@ group_size=21
 metrics="['group_auc','auc']"
 key_metric="auc"
 optimizer="adam"
-
-# task="test"
-# model_file="$HOME_DIR/workspace/UniRec/output/Beauty/FM/train/checkpoint_2023-08-28_063744_32/FM.pth"
-# model_file="$HOME_DIR/workspace/UniRec/output/Beauty/FM/train_pre/xlearn-ckpt_20230822/FM.txt"
-
-task="train"
-model_file=""
 
 
 cd $MY_DIR

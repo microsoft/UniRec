@@ -2,10 +2,13 @@
 # Licensed under the MIT license.
 
 #!/bin/bash 
+
+###############################################################################################
+### Please modify the following variables according to your device and mission requirements ###
+###############################################################################################
 HOME_DIR=$(eval echo ~)
 
 LOCAL_ROOT="$HOME_DIR/work/UniRec"
-
 
 # ============WanDB configuration===========
 USE_WANDB=1 # e.g. "0,1"
@@ -16,7 +19,9 @@ WANDB_FILE="$(eval pwd)/wandb.yaml"
 # ========================================
 
 
-
+###############################################################################################
+############################## default parameters for local run ###############################
+###############################################################################################
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output" 

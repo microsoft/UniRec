@@ -108,6 +108,17 @@ def unzip_zip_file(zip_file_path: str, extract_path: str = None) -> str:
 
 
 def get_valid_ids(df, col_name, k):
+    """
+    Get valid IDs from a DataFrame based on the frequency of a column.
+
+    Args:
+        df (pandas.DataFrame): The DataFrame to extract IDs from.
+        col_name (str): The name of the column to calculate frequency on.
+        k (int): The minimum frequency required for an ID to be considered valid.
+
+    Returns:
+        pandas.Index: The valid IDs.
+    """
     frequency = df.groupby([col_name])[[col_name]].count()
     valid_id = frequency[frequency[col_name]>=k].index
     return valid_id
@@ -115,16 +126,42 @@ def get_valid_ids(df, col_name, k):
 
 ### leave-one-out split
 def split_train_test_set(data: pd.DataFrame, col_name: str, col_names_2_return: list, seed: int = 0):
+    """
+    Split the input data into train and test sets based on a specified column name.
+
+    Parameters:
+        data (pd.DataFrame): The input DataFrame to be split.
+        col_name (str): The column name used for splitting the data.
+        col_names_2_return (list): The list of column names to be returned in the train and test sets.
+        seed (int, optional): The random seed for reproducibility. Defaults to 0.
+
+    Returns:
+        df_train (pd.DataFrame): The train set DataFrame.
+        df_test (pd.DataFrame): The test set DataFrame.
+    """
     if col_names_2_return is None:
-        col_names_2_return = data.columns #.to_list()
-    df_groupby = data.groupby(by=col_name, as_index=False) 
+        col_names_2_return = data.columns
+    df_groupby = data.groupby(by=col_name, as_index=False)
     df_test = df_groupby.nth(-1)[col_names_2_return]
-    df_train = data.iloc[data.index.difference(df_test.index)] 
-    return df_train.reset_index(drop=True), df_test.reset_index(drop=True) 
+    df_train = data.iloc[data.index.difference(df_test.index)]
+    return df_train.reset_index(drop=True), df_test.reset_index(drop=True)
 
 
 
 def k_core_filter(df: pd.DataFrame, user_k=10, item_k=10, user_col_name='user_id', item_col_name='item_id'):
+    """
+    Filters the DataFrame to retain only the users and items that have at least 'user_k' interactions and 'item_k' interactions respectively.
+
+    Args:
+        df (pd.DataFrame): The input DataFrame containing user-item interactions.
+        user_k (int, optional): The minimum number of interactions required for a user to be retained. Defaults to 10.
+        item_k (int, optional): The minimum number of interactions required for an item to be retained. Defaults to 10.
+        user_col_name (str, optional): The name of the column representing the user IDs. Defaults to 'user_id'.
+        item_col_name (str, optional): The name of the column representing the item IDs. Defaults to 'item_id'.
+
+    Returns:
+        pd.DataFrame: The filtered DataFrame containing only the users and items that satisfy the interaction count criteria.
+    """
     num_users_prev, num_items_prev = len(df[user_col_name].unique()), len(df[item_col_name].unique()) 
     delta = True
     n_iter, max_iter = 0, 5
@@ -148,14 +185,25 @@ def k_core_filter(df: pd.DataFrame, user_k=10, item_k=10, user_col_name='user_id
     return df
 
 
+def merge_category(data, min_item_in_cate=50):
+    """
+    Get mapping cate2items and item2cate, and merge categories containing a small number of 
+        items (lower than min_item_in_cate) into one category.
 
-def merge_category(data):
-    # Get cate2items and item2cate
-    # Merge categories containing a small number of items (lower than 200) into one category
+    Args:
+        data (pandas.DataFrame): The interactions of user-item, containing 'userId', 'movieId', 
+            'rating', 'timestamp', 'cateId'.
+        min_item_in_cate (int): The minimum number of items in each categories. Defaults to 50.
+
+    Returns:
+        dict: The mapping from category to category index.
+        dict: The mapping from item to category.
+        int: The number of categories.
+    """
     print('\n>> Merging categories...')
     cate2item = {}
 
-    for cate, item in tqdm(zip(data['cate_id'], data['item_id']), desc='get cate2items'):
+    for cate, item in tqdm(zip(data['cateId'], data['movieId']), desc='get cate2items'):
         for c in cate:
             if c not in cate2item.keys():
                 cate2item[c] = set([])
@@ -163,7 +211,7 @@ def merge_category(data):
 
     large_cate, small_cate = [], []
     for cate, items in cate2item.items():
-        if len(items) <= 50:
+        if len(items) <= min_item_in_cate:
             small_cate.append(cate)
         else:
             large_cate.append(cate)
@@ -174,7 +222,7 @@ def merge_category(data):
         cate2idx[sc] = num_cates
 
     item2cate = {}
-    for cate, item in tqdm(zip(data['cate_id'], data['item_id']), desc='get item2cate'):
+    for cate, item in tqdm(zip(data['cateId'], data['movieId']), desc='get item2cate'):
         new_cate = []
         for c in cate:
             new_cate.append(cate2idx[c])
@@ -220,6 +268,8 @@ def prepare_ml100k():
     # Merge item cate
     rating_df = pd.merge(rating_df, cate_df, how='inner', on=['movieId'])
 
+    cate2idx, item2cate, num_cates = merge_category(rating_df)
+
     user_col_name = 'userId'
     item_col_name='movieId'
 
@@ -238,8 +288,6 @@ def prepare_ml100k():
 
     # Map
     data = data.rename(columns={"userId": "user_id", "movieId": "item_id", "cateId": "cate_id"})
-
-    cate2idx, item2cate, num_cates = merge_category(data)
 
     users, items = data['user_id'].unique(), data['item_id'].unique()
     num_users, num_items = len(users), len(items)
