@@ -8,19 +8,16 @@
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
 HOME_DIR=$(eval echo ~)
-LOCAL_ROOT='$HOME_DIR/UniRec'
+LOCAL_ROOT="$HOME_DIR/UniRec"
+###############################################################################################
 
 
-###############################################################################################
-############################## default parameters for local run ###############################
-###############################################################################################
+# default parameters for local run
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$HOME_DIR/UniRec/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output"
 
 
-
-# default parameters for local run
 MODEL_NAME='SASRec' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU, SASRec, ConvFormer, MultiVAE]
 DATA_TYPE='SeqRecDataset' #AERecDataset BaseDataset SeqRecDataset
 DATASET_NAME="ES_final_dataset"  #"x-engmt-1m" #"Beauty"   
@@ -35,6 +32,9 @@ n_sample_neg_train=0  #400
 max_seq_len=7
 history_mask_mode='autoregressive'
 embedding_size=176
+
+text_emb_path="$ALL_DATA_ROOT/ES_final_dataset/item_embeddings_nid.csv"
+features_filepath="$ALL_DATA_ROOT/ES_final_dataset/id2features_2.csv"
 
 cd $MY_DIR
 export PYTHONPATH=$PWD
@@ -84,10 +84,10 @@ CUDA_VISIBLE_DEVICES='0,1' torchrun --nnodes=1 --nproc_per_node=2 --rdzv_backend
     --scheduler_factor=0.1209259552381572 \
     --tau=0.6952599498943698 \
     --use_text_emb=1 \
-    --text_emb_path='$HOME_DIR/UniRec/data/ES_final_dataset/item_embeddings_nid.csv' \
+    --text_emb_path=$text_emb_path \
     --text_emb_size=1024 \
     --use_features=1 \
-    --features_filepath='$HOME_DIR/UniRec/data/ES_final_dataset/id2features_2.csv'  \
+    --features_filepath=$features_filepath  \
     --features_shape='[3489, 99]' \
     --gpu_id=-1
     

@@ -7,15 +7,11 @@
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
 HOME_DIR=$(eval echo ~)
-LOCAL_ROOT='$HOME_DIR/work/UniRec' 
-
-# well-trained model
-model_file="$HOME_DIR/work/UniRec/output/amazon-electronics/MF/train/amazon-electronics_MF_bpr/MF-MF.pth"
-
-
+LOCAL_ROOT="$HOME_DIR/work/UniRec"
 ###############################################################################################
-############################## default parameters for local run ###############################
-###############################################################################################
+
+
+# default parameters for local run
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output" 
@@ -53,6 +49,9 @@ alignment_distribution_filename="align_dist.tsv"
 currentTime=`date "+%Y-%m-%d_%H%M%S"`
 exp_name="MoRec-FinetuneModel"
 checkpoint_dir=$DATASET_NAME"_"$MODEL_NAME"_"$loss_type"_MoRecFinetune_"$currentTime
+
+# well-trained model
+model_file="$LOCAL_ROOT/output/amazon-electronics/MF/train/amazon-electronics_MF_bpr/MF-MF.pth"
 
 # for  MODEL_NAME in 'AvgHist' 'AttHist' 'MF' 'SVDPlusPlus' 'GRU' 'SASRec'
 # do

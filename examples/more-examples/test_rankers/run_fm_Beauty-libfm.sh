@@ -7,12 +7,11 @@
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
 HOME_DIR=$(eval echo ~)
-LOCAL_ROOT='$HOME_DIR/workspace/UniRec'
+LOCAL_ROOT="$HOME_DIR/workspace/UniRec"
+###############################################################################################
 
 
-###############################################################################################
-############################## default parameters for local run ###############################
-###############################################################################################
+# default parameters for local run
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output"
@@ -46,8 +45,8 @@ optimizer="adagrad"
 # optimizer="adam"
 
 # task="test"
-# model_file="$HOME_DIR/workspace/UniRec/output/Beauty/FM/train/checkpoint_2023-08-28_063744_32/FM.pth"
-# model_file="$HOME_DIR/workspace/UniRec/output/Beauty/FM/train_pre/xlearn-ckpt_20230822/FM.txt"
+# model_file="$LOCAL_ROOT/output/Beauty/FM/train/checkpoint_2023-08-28_063744_32/FM.pth"
+# model_file="$LOCAL_ROOT/output/Beauty/FM/train_pre/xlearn-ckpt_20230822/FM.txt"
 
 task="train"
 model_file=""

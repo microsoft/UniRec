@@ -7,12 +7,11 @@
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
 HOME_DIR=$(eval echo ~)
-LOCAL_ROOT='$HOME_DIR/working_dir/UniRec'
+LOCAL_ROOT="$HOME_DIR/working_dir/UniRec"
+###############################################################################################
 
 
-###############################################################################################
-############################## default parameters for local run ###############################
-###############################################################################################
+# default parameters for local run
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output"
@@ -31,6 +30,9 @@ n_sample_neg_train=20  #400
 max_seq_len=7
 history_mask_mode='autoregressive'
 embedding_size=80
+
+text_emb_path="$HOME_DIR/blob/final_data/unirec_data/ES_final_dataset/text_embs/addnextitem_mean_mbart/item_embeddings_nid.csv"
+features_filepath="$HOME_DIR/blob/final_data/unirec_data/ES_final_dataset/id2features_2.csv"
 
 cd $MY_DIR
 export PYTHONPATH=$PWD
@@ -81,10 +83,10 @@ python unirec/main/main.py \
     --attn_dropout_prob=0.24153327803951888 \
     --scheduler_factor=0.13993354508874983 \
     --use_text_emb=1 \
-    --text_emb_path='$HOME_DIR/blob/final_data/unirec_data/ES_final_dataset/text_embs/addnextitem_mean_mbart/item_embeddings_nid.csv' \
+    --text_emb_path=$text_emb_path \
     --text_emb_size=1024 \
     --use_features=1 \
-    --features_filepath='$HOME_DIR/blob/final_data/unirec_data/ES_final_dataset/id2features_2.csv'  \
+    --features_filepath=$features_filepath  \
     --features_shape='[3489, 99]' \
 # done
 # done

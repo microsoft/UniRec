@@ -7,14 +7,11 @@
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
 HOME_DIR=$(eval echo ~)
-LOCAL_ROOT='$HOME_DIR/work/UniRec' 
-
-wandb_file="$LOCAL_ROOT/unirec/shell/morec/wandb.yaml"
-
-
+LOCAL_ROOT="$HOME_DIR/work/UniRec"
 ###############################################################################################
-############################## default parameters for local run ###############################
-###############################################################################################
+
+
+# default parameters for local run
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output" 
@@ -23,6 +20,7 @@ loss_type='bpr' # [bce, bpr, softmax]
 DATASET_NAME="amazon-electronics"
 max_seq_len=20
 verbose=2
+wandb_file="$LOCAL_ROOT/unirec/shell/morec/wandb.yaml"
 
 cd $MY_DIR
 export PYTHONPATH=$PWD 

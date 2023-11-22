@@ -8,7 +8,7 @@
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
 HOME_DIR=$(eval echo ~)
-LOCAL_ROOT='$HOME_DIR/working_dir/UniRec'
+LOCAL_ROOT="$HOME_DIR/working_dir/UniRec"
 
 ALL_DATA_ROOT="$HOME_DIR/blob/final_data/unirec_data"
 
@@ -18,11 +18,10 @@ valid_item_file="$HOME_DIR/data/ES_data/valid_merged_items.txt"
 test_item_file="$HOME_DIR/data/ES_data/test_merged_items.txt"
 
 # features_filepath="$HOME_DIR/blob/final_data/unirec_data/DE_final_dataset/id2features_2.csv"
+###############################################################################################
 
 
-###############################################################################################
-############################## default parameters for local run ###############################
-###############################################################################################
+# default parameters for local run
 MY_DIR=$LOCAL_ROOT
 
 

@@ -5,24 +5,24 @@
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
 HOME_DIR=$(eval echo ~)
+ROOT_DIR='/path/to/UniRec'
+###############################################################################################
+
+
+# default parameters for local run
+raw_dataset='ml-10m'  # 'ml-100k'
 
 RAW_DATA_DIR="$HOME_DIR/.unirec/dataset"
-ROOT_DIR='/path/to/UniRec'
+RAW_DATA_PREFILE="$RAW_DATA_DIR/$raw_dataset/full_user_history.csv"
+ITEM2CATE_FILE="$RAW_DATA_DIR/$raw_dataset/item2cate.json"
 
-
-###############################################################################################
-############################## default parameters for local run ###############################
-###############################################################################################
-RAW_DATA_PREFILE="$RAW_DATA_DIR/ml-100k/full_user_history.csv"
-ITEM2CATE_FILE="$RAW_DATA_DIR/ml-100k/item2cate.json"
-RAW_DATA_FILE="$RAW_DATA_DIR/ml-100k-adaranker/ml-100k-adaranker.txt"
+dataset_name="$raw_dataset-adaranker"
+RAW_DATA_FILE="$RAW_DATA_DIR/$dataset_name/$dataset_name.txt"
 
 MY_DIR=$ROOT_DIR
 DATA_ROOT="$ROOT_DIR/data"
 OUTPUT_ROOT="$ROOT_DIR/output"
 
-
-dataset_name='ml-100k-adaranker' ## gowalla amazon-book yelp2018
 
 export PYTHONPATH=$MY_DIR
 
@@ -30,14 +30,15 @@ raw_datapath="$RAW_DATA_DIR/$dataset_name"
 dataset_outpathroot=$DATA_ROOT
 example_yaml_file="$MY_DIR/unirec/config/dataset/example.yaml"
 
-# group_size=21
-# n_neg_k=$((group_size-1)) # if use group_size
-
 group_size=-1
-n_neg_k=11
 pretrain_word2vec=1
 embedding_size=64
 
+if [ "$dataset" = "ml-100k" ]; then
+    n_neg_k=11
+elif [ "$dataset" = "ml-10m" ]; then
+    n_neg_k=19
+fi
 
 cd $MY_DIR"/examples/preprocess"
 # run ranker.py to get rank data in T4 data format from user history

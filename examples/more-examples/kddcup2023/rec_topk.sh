@@ -8,17 +8,15 @@
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
 HOME_DIR=$(eval echo ~)
-LOCAL_ROOT='$HOME_DIR/UniRec'
-
+LOCAL_ROOT="$HOME_DIR/UniRec"
 ALL_DATA_ROOT="$HOME_DIR/blob/final_data/unirec_data"
 
-model_file="$HOME_DIR/working_dir/UniRec/output/ES_final_next_item_dataset/SASRec/train/checkpoint_2023-06-24_035204_1/SASRec-SASRec.pth"
-output_path="$HOME_DIR/working_dir/UniRec/output/ES_final_next_item_dataset/SASRec/train/checkpoint_2023-06-24_035204_1/"
+model_file="$LOCAL_ROOT/output/ES_final_next_item_dataset/SASRec/train/checkpoint_2023-06-24_035204_1/SASRec-SASRec.pth"
+output_path="$LOCAL_ROOT/output/ES_final_next_item_dataset/SASRec/train/checkpoint_2023-06-24_035204_1/"
+###############################################################################################
 
 
-###############################################################################################
-############################## default parameters for local run ###############################
-###############################################################################################
+# default parameters for local run
 MY_DIR=$LOCAL_ROOT
 
 
