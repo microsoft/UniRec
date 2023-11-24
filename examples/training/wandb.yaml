@@ -1,8 +1,8 @@
 # configuration for wandb sweep that is used in wandb_start.sh
 command: 
     - bash
-    - ./train_ml100k_with_wandb.sh  # path to your training script
-name: sasrec-ml100k-parameter-tuning    # the project name
+    - ./train_yoochoose_with_wandb.sh  # path to your training script
+name: sasrec-yoochoose-tuning    # the project name
 method: bayes   # random / grid / bayes
 metric:
     goal: maximize
@@ -20,7 +20,9 @@ parameters:
         max: 0.5
     learning_rate:
         min: 0.00001
-        max: 0.0009
+        max: 0.001
     grad_clip_value:
         min: 5.0
         max: 30.0
+    batch_size:
+        values: [16,64,128]
