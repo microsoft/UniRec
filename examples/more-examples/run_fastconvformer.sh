@@ -6,8 +6,7 @@
 ###############################################################################################
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
-HOME_DIR=$(eval echo ~)
-LOCAL_ROOT="$HOME_DIR/Unirec" 
+LOCAL_ROOT="$HOME/workspace/UniRec"  # path to UniRec
 ###############################################################################################
 
 

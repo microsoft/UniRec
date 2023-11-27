@@ -14,16 +14,14 @@ Below are the metric results on the ml-10m dataset comparing with original paper
 
 ## Usage
 
-To use Ada-Ranker, there are some optional dataset information files.
-
-- item_emb_k.tsv.  The pretrained item embedding through Word2Vec. k means the embedding size.
-
-You can directly generate the files needed by AdaRanker through running:
+To use Ada-Ranker, you should firstly generate data files needed by Ada-Ranker through running:
 
 ```bash
-python Unirec/examples/preprocess/download_split_ml10m.py
+python UniRec/examples/preprocess/download_split_ml10m.py
 bash UniRec/examples/preprocess/run_prepare_data-ml-10m100k-adaranker.sh
 ```
+
+This will by default generate split training, validation, and test files, as well as a pre-trained item embedding file under `$HOME/.unrec/dataset/ml-10m-adaranker`. The default embedding size is 64 (which can be modified in `run_prepare_data-ml-10m100k-adaranker.sh`).
 
 To run Ada-Ranker, there are two ways:
 

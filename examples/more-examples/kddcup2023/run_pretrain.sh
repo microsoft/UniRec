@@ -7,10 +7,9 @@
 ###############################################################################################
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
-HOME_DIR=$(eval echo ~)
-LOCAL_ROOT="$HOME_DIR/working_dir/UniRec"
+LOCAL_ROOT="$HOME/workspace/UniRec"  # path to UniRec
 
-ALL_DATA_ROOT="$HOME_DIR/blob/final_data/unirec_data"
+ALL_DATA_ROOT="$HOME/blob/final_data/unirec_data"
 
 text_emb_path="$ALL_DATA_ROOT/ES_final_dataset/text_embs/addnextitem_mean_mbart/item_embeddings_nid.csv"
 features_filepath="$ALL_DATA_ROOT/ES_final_dataset/id2features_2.csv"

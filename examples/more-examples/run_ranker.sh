@@ -6,8 +6,7 @@
 ###############################################################################################
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
-HOME_DIR=$(eval echo ~)
-LOCAL_ROOT="$HOME_DIR/working_dir/UniRec"
+LOCAL_ROOT="$HOME/workspace/UniRec"  # path to UniRec
 ###############################################################################################
 
 
@@ -31,8 +30,8 @@ max_seq_len=7
 history_mask_mode='autoregressive'
 embedding_size=80
 
-text_emb_path="$HOME_DIR/blob/final_data/unirec_data/ES_final_dataset/text_embs/addnextitem_mean_mbart/item_embeddings_nid.csv"
-features_filepath="$HOME_DIR/blob/final_data/unirec_data/ES_final_dataset/id2features_2.csv"
+text_emb_path="$HOME/blob/final_data/unirec_data/ES_final_dataset/text_embs/addnextitem_mean_mbart/item_embeddings_nid.csv"
+features_filepath="$HOME/blob/final_data/unirec_data/ES_final_dataset/id2features_2.csv"
 
 cd $MY_DIR
 export PYTHONPATH=$PWD

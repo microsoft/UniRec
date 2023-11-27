@@ -17,9 +17,7 @@ NPROC_PER_NODE=1
 
 # ========================================
 
-HOME_DIR=$(eval echo ~)
-
-LOCAL_ROOT="$HOME_DIR/work/UniRec"
+LOCAL_ROOT="$HOME/workspace/UniRec"  # path to UniRec
 ###############################################################################################
 
 

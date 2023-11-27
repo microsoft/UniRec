@@ -3,9 +3,7 @@
 ###############################################################################################
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
-HOME_DIR=$(eval echo ~)
-
-LOCAL_ROOT="$HOME_DIR/UniRec"
+LOCAL_ROOT="$HOME/workspace/UniRec"  # path to UniRec
 
 ckpt_file="path/to/SASRec.pth"
 output_path="directory/to/onnx model"

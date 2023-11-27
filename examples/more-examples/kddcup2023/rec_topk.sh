@@ -7,9 +7,8 @@
 ###############################################################################################
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
-HOME_DIR=$(eval echo ~)
-LOCAL_ROOT="$HOME_DIR/UniRec"
-ALL_DATA_ROOT="$HOME_DIR/blob/final_data/unirec_data"
+LOCAL_ROOT="$HOME/workspace/UniRec"  # path to UniRec
+ALL_DATA_ROOT="$HOME/blob/final_data/unirec_data"
 
 model_file="$LOCAL_ROOT/output/ES_final_next_item_dataset/SASRec/train/checkpoint_2023-06-24_035204_1/SASRec-SASRec.pth"
 output_path="$LOCAL_ROOT/output/ES_final_next_item_dataset/SASRec/train/checkpoint_2023-06-24_035204_1/"
@@ -50,5 +49,5 @@ CUDA_VISIBLE_DEVICES=0 python unirec/main/reco_topk.py \
     --output_path=$output_path"test_top100.txt" \
     --last_item=0 \
     --topk=100
-# --features_filepath="$HOME_DIR/blob/final_data/unirec_data/JP_final_dataset/id2features_2.csv"
-# --item_file='$HOME_DIR/data/FR_data/test_merged_items.txt'
+# --features_filepath="$HOME/blob/final_data/unirec_data/JP_final_dataset/id2features_2.csv"
+# --item_file='$HOME/data/FR_data/test_merged_items.txt'

@@ -7,17 +7,16 @@
 ###############################################################################################
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
-HOME_DIR=$(eval echo ~)
-LOCAL_ROOT="$HOME_DIR/working_dir/UniRec"
+LOCAL_ROOT="$HOME/workspace/UniRec"  # path to UniRec
 
-ALL_DATA_ROOT="$HOME_DIR/blob/final_data/unirec_data"
+ALL_DATA_ROOT="$HOME/blob/final_data/unirec_data"
 
-model_file="$HOME_DIR/blob/output/ES_final_dataset/Avghist/train/checkpoint_2023-06-07_115922_2/AvgHist-AvgHist.pth"
-output_path="$HOME_DIR/blob/output/ES_final_dataset/Avghist/train/checkpoint_2023-06-07_115922_2/"
-valid_item_file="$HOME_DIR/data/ES_data/valid_merged_items.txt"
-test_item_file="$HOME_DIR/data/ES_data/test_merged_items.txt"
+model_file="$HOME/blob/output/ES_final_dataset/Avghist/train/checkpoint_2023-06-07_115922_2/AvgHist-AvgHist.pth"
+output_path="$HOME/blob/output/ES_final_dataset/Avghist/train/checkpoint_2023-06-07_115922_2/"
+valid_item_file="$HOME/data/ES_data/valid_merged_items.txt"
+test_item_file="$HOME/data/ES_data/test_merged_items.txt"
 
-# features_filepath="$HOME_DIR/blob/final_data/unirec_data/DE_final_dataset/id2features_2.csv"
+# features_filepath="$HOME/blob/final_data/unirec_data/DE_final_dataset/id2features_2.csv"
 ###############################################################################################
 
 
@@ -59,4 +58,4 @@ CUDA_VISIBLE_DEVICES=0 python unirec/main/reco_topk.py \
     --topk=100 \
     --item_file=$test_item_file \
     # --features_filepath=$features_filepath
-    # --item_file='$HOME_DIR/data/FR_data/test_merged_items.txt'
+    # --item_file='$HOME/data/FR_data/test_merged_items.txt'

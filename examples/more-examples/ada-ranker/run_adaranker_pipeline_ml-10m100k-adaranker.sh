@@ -6,8 +6,7 @@
 ###############################################################################################
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
-HOME_DIR=$(eval echo ~)  # root
-LOCAL_ROOT="$HOME_DIR/workspace/UniRec"
+LOCAL_ROOT="$HOME/workspace/UniRec"  # path to UniRec
 ###############################################################################################
 
 
@@ -35,7 +34,7 @@ key_metric="group_auc"
 
 
 embedding_size=64
-item_emb_path="$HOME_DIR/.unirec/dataset/$DATASET_NAME/item_emb_$embedding_size.txt"
+item_emb_path="$HOME/.unirec/dataset/$DATASET_NAME/item_emb_$embedding_size.txt"
 
 
 if [ $DATASET_NAME == "ml-100k-adaranker" ]; then
@@ -112,14 +111,14 @@ fi
 
 
 if [ "$pipeline" = "adaranker" ] || [ "$pipeline" = "finetune" ]; then
-    if [ $pipeline -eq 1 ]; then
+    if [ "$pipeline" = "adaranker" ]; then
         use_pre_item_emb=1
         freeze=0
         load_pretrained_model=0
         model_file=""
         ALL_RESULTS_ROOT="$OUTPUT_ROOT/$DATASET_NAME/${MODEL_NAME}_Ada-Ranker"
 
-    elif [ $pipeline -eq 2 ]; then
+    elif [ "$pipeline" = "finetune" ]; then
         use_pre_item_emb=0
         freeze=1
         load_pretrained_model=1

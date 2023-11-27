@@ -4,13 +4,12 @@
 ###############################################################################################
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
-HOME_DIR=$(eval echo ~)
-ROOT_DIR='/path/to/UniRec'
+ROOT_DIR="$HOME/workspace/UniRec"  # path to UniRec
 ###############################################################################################
 
 
 # default parameters for local run
-RAW_DATA_DIR="$HOME_DIR/.unirec/dataset"
+RAW_DATA_DIR="$HOME/.unirec/dataset"
 RAW_DATA_PREFILE="$RAW_DATA_DIR/ml-100k/full_user_history.csv"
 RAW_DATA_FILE="$RAW_DATA_DIR/ml-100k-rank/ml-100k-rank.txt"
 

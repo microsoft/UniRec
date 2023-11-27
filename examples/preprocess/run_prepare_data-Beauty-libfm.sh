@@ -4,14 +4,14 @@
 ###############################################################################################
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
-RAW_DATA_FILE="/path/to/raw_datasets/Beauty/Beauty.txt"
-RAW_DATA_DIR="/path/to/raw_datasets"
-
-ROOT_DIR='/path/to/UniRec'
+ROOT_DIR="$HOME/workspace/UniRec"  # path to UniRec
 ###############################################################################################
 
 
 # default parameters for local run
+RAW_DATA_DIR="$HOME/.unirec/dataset"
+RAW_DATA_FILE="$RAW_DATA_DIR/Beauty/Beauty.txt"
+
 MY_DIR=$ROOT_DIR
 DATA_ROOT="$ROOT_DIR/data"
 OUTPUT_ROOT="$ROOT_DIR/output"

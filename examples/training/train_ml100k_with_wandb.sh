@@ -6,9 +6,7 @@
 ###############################################################################################
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
-HOME_DIR=$(eval echo ~)
-
-LOCAL_ROOT="$HOME_DIR/work/UniRec"
+LOCAL_ROOT="$HOME/workspace/UniRec"  # path to UniRec
 
 # ============WanDB configuration===========
 USE_WANDB=1 # e.g. "0,1"

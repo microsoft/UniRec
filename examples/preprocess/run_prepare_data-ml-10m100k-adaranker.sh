@@ -4,15 +4,14 @@
 ###############################################################################################
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
-HOME_DIR=$(eval echo ~)
-ROOT_DIR='/path/to/UniRec'
+ROOT_DIR="$HOME/workspace/UniRec"  # path to UniRec
 ###############################################################################################
 
 
 # default parameters for local run
 raw_dataset='ml-10m'  # 'ml-100k'
 
-RAW_DATA_DIR="$HOME_DIR/.unirec/dataset"
+RAW_DATA_DIR="$HOME/.unirec/dataset"
 RAW_DATA_PREFILE="$RAW_DATA_DIR/$raw_dataset/full_user_history.csv"
 ITEM2CATE_FILE="$RAW_DATA_DIR/$raw_dataset/item2cate.json"
 
@@ -34,9 +33,9 @@ group_size=-1
 pretrain_word2vec=1
 embedding_size=64
 
-if [ "$dataset" = "ml-100k" ]; then
+if [ "$raw_dataset" = "ml-100k" ]; then
     n_neg_k=11
-elif [ "$dataset" = "ml-10m" ]; then
+elif [ "$raw_dataset" = "ml-10m" ]; then
     n_neg_k=19
 fi
 

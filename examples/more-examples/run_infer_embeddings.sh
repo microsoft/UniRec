@@ -7,10 +7,9 @@
 ###############################################################################################
 ### Please modify the following variables according to your device and mission requirements ###
 ###############################################################################################
-HOME_DIR=$(eval echo ~)
-LOCAL_ROOT='$HOME_DIR/working_dir/UniRec'
+LOCAL_ROOT="$HOME/workspace/UniRec"  # path to UniRec
 
-ALL_DATA_ROOT="$HOME_DIR/blob/final_data/unirec_data"
+ALL_DATA_ROOT="$HOME/blob/final_data/unirec_data"
 
 model_file="$LOCAL_ROOT/output/ES_final_dataset/SASRec/train/checkpoint_2023-06-25_072144_30/SASRec-SASRec.pth"
 output_path="$LOCAL_ROOT/output/ES_final_dataset/SASRec/train/checkpoint_2023-06-25_072144_30/"
