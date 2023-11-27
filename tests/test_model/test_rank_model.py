@@ -117,6 +117,8 @@ def test_train_pipeline(models, expected_values):
             config['dropout_prob'] = 0.6
             config['max_seq_len'] = 10
             config['use_pre_item_emb'] = 1
+            config['batch_size'] = 256
+            config['early_stop'] = 15
             config['item_emb_path'] = os.path.join(UNIREC_PATH, 'tests/.temp/raw_datasets/ml-100k-adaranker/item_emb_64.txt')
         exp_value = expected_values[model]
         result = main.run(config)
@@ -159,6 +161,8 @@ def test_eval_pipeline(models, expected_values):
             config['dropout_prob'] = 0.6
             config['max_seq_len'] = 10
             config['use_pre_item_emb'] = 1
+            config['batch_size'] = 256
+            config['early_stop'] = 15
             config['item_emb_path'] = os.path.join(UNIREC_PATH, 'tests/.temp/raw_datasets/ml-100k-adaranker/item_emb_64.txt')
         exp_value = expected_values[model]
         result = main.run(config)
@@ -199,6 +203,8 @@ def test_infer_pipeline(models):
             config['dropout_prob'] = 0.6
             config['max_seq_len'] = 10
             config['use_pre_item_emb'] = 1
+            config['batch_size'] = 256
+            config['early_stop'] = 15
             config['item_emb_path'] = os.path.join(UNIREC_PATH, 'tests/.temp/raw_datasets/ml-100k-adaranker/item_emb_64.txt')
         result = main.run(config)
         shape.add(result.shape)
