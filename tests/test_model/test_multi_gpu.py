@@ -29,7 +29,8 @@ ABS_TOL = 0.05
         ]
 )
 def test_ddp_sh(expected_values):
-    num_gpus = torch.cuda.device_count()
+    gpu_info = subprocess.check_output("nvidia-smi -L", shell=True).decode('utf-8')
+    num_gpus = len(gpu_info.strip().split('\n'))
     assert num_gpus > 1, f"At least two GPUs are required to test ddp, while only {num_gpus} GPUs found."
     shell_path = os.path.join(UNIREC_PATH, 'tests/test_model/run_ddp_test.sh')
     output = subprocess.run(["bash", shell_path], capture_output=True, text=True)

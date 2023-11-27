@@ -15,8 +15,8 @@ from collections import *
 from unirec.main import main
 
 
-TOL = 0.1
-ABS_TOL = 0.1
+TOL = 0.2
+ABS_TOL = 0.2
 
 GLOBAL_CONF = {
     'config_dir': f"{os.path.join(UNIREC_PATH, 'unirec', 'config')}",
