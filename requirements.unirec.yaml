@@ -1,4 +1,4 @@
-name: unirec-test
+name: unirec
 channels:
   - pytorch
   - defaults
