@@ -62,7 +62,7 @@ CUDA_VISIBLE_DEVICES='0,1' torchrun --nnodes=1 --nproc_per_node=2 --rdzv_backend
     --grad_clip_value=23.436523771594445 \
     --weight_decay=$weight_decay \
     --user_history_filename="user_history" \
-    --user_history_file_format="user-item"  \
+    --user_history_file_format="user-item_seq"  \
     --history_mask_mode=$history_mask_mode \
     --metrics="['hit@20;100;200;300;1000;2000;3000', 'ndcg@20;100;200;300;1000','mrr@20;100;200;300;1000']" \
     --key_metric="mrr@100" \

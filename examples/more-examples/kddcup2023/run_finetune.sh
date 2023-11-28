@@ -4,17 +4,23 @@
 #!/bin/bash
 # load the best pre-trained model and finetune only on the next item label of the locale dataset
 
-# root
-HOME_DIR=$(eval echo ~)
-LOCAL_ROOT='$HOME_DIR/working_dir/UniRec'
+###############################################################################################
+### Please modify the following variables according to your device and mission requirements ###
+###############################################################################################
+LOCAL_ROOT="$HOME/workspace/UniRec"  # path to UniRec
 
-MY_DIR=$LOCAL_ROOT
-ALL_DATA_ROOT="$HOME_DIR/blob/final_data/unirec_data"
-OUTPUT_ROOT="$LOCAL_ROOT/output"
+ALL_DATA_ROOT="$HOME/blob/final_data/unirec_data"
 
+features_filepath="$ALL_DATA_ROOT/ES_final_dataset/id2features_2.csv"
+model_file="$LOCAL_ROOT/output/ES_final_dataset/SASRec/train/checkpoint_2023-06-24_032006_58/SASRec-SASRec.pth"
+###############################################################################################
 
 
 # default parameters for local run
+MY_DIR=$LOCAL_ROOT
+OUTPUT_ROOT="$LOCAL_ROOT/output"
+
+
 MODEL_NAME='SASRec' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU, SASRec, ConvFormer, MultiVAE]
 DATA_TYPE='SeqRecDataset' #AERecDataset BaseDataset SeqRecDataset
 DATASET_NAME="ES_final_next_item_dataset"
@@ -80,8 +86,8 @@ python unirec/main/main.py \
     --use_text_emb=1 \
     --text_emb_size=1024 \
     --use_features=1 \
-    --features_filepath='$HOME_DIR/blob/final_data/unirec_data/ES_final_dataset/id2features_2.csv'  \
+    --features_filepath=$features_filepath  \
     --features_shape='[3489, 99]' \
-    --model_file='$HOME_DIR/working_dir/UniRec/output/ES_final_dataset/SASRec/train/checkpoint_2023-06-24_032006_58/SASRec-SASRec.pth' \
+    --model_file=$model_file \
     --load_best_model=1 \
     --seq_last=1

@@ -3,9 +3,14 @@
 
 #!/bin/bash 
 
-HOME_DIR=$(eval echo ~)
-LOCAL_ROOT='$HOME_DIR/Unirec' 
+###############################################################################################
+### Please modify the following variables according to your device and mission requirements ###
+###############################################################################################
+LOCAL_ROOT="$HOME/workspace/UniRec"  # path to UniRec
+###############################################################################################
 
+
+# default parameters for local run
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output" 

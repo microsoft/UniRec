@@ -2,9 +2,15 @@
 # Licensed under the MIT license.
 
 #!/bin/bash 
-HOME_DIR=$(eval echo ~)
-LOCAL_ROOT='$HOME_DIR/work/UniRec' 
 
+###############################################################################################
+### Please modify the following variables according to your device and mission requirements ###
+###############################################################################################
+LOCAL_ROOT="$HOME/workspace/UniRec"  # path to UniRec
+###############################################################################################
+
+
+# default parameters for local run
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output" 
@@ -39,12 +45,12 @@ objective_weights="[0.1,0.1,0.8]"   # weight for objectives expect accuracy
 item_meta_morec_filename="item_meta_morec_filename.tsv"
 alignment_distribution_filename="align_dist.tsv"
 
-# well-trained model
-model_file="$HOME_DIR/work/UniRec/output/amazon-electronics/MF/train/amazon-electronics_MF_bpr/MF-MF.pth"
-
 currentTime=`date "+%Y-%m-%d_%H%M%S"`
 exp_name="MoRec-FinetuneModel"
 checkpoint_dir=$DATASET_NAME"_"$MODEL_NAME"_"$loss_type"_MoRecFinetune_"$currentTime
+
+# well-trained model
+model_file="$LOCAL_ROOT/output/amazon-electronics/MF/train/amazon-electronics_MF_bpr/MF-MF.pth"
 
 # for  MODEL_NAME in 'AvgHist' 'AttHist' 'MF' 'SVDPlusPlus' 'GRU' 'SASRec'
 # do

@@ -27,3 +27,4 @@ dependencies:
     - cvxpy==1.4.1
     - onnxruntime==1.15.1
     - accelerate==0.20.3
+    - gensim==4.3.2

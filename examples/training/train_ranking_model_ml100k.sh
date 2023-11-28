@@ -3,17 +3,19 @@
 
 #!/bin/bash
 
-HOME_DIR=$(eval echo ~)
+###############################################################################################
+### Please modify the following variables according to your device and mission requirements ###
+###############################################################################################
+LOCAL_ROOT="$HOME/workspace/UniRec"  # path to UniRec
+###############################################################################################
 
-LOCAL_ROOT="$HOME_DIR/work/UniRec"
 
+# default parameters for local run
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output"
 
 
-
-# default parameters for local run
 MODEL_NAME='BST'
 DATA_TYPE='SeqRecDataset'
 DATASET_NAME="ml-100k"

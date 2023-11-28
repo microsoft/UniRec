@@ -147,6 +147,11 @@ def parse_cmd_arguments():
     ## FM model
     parser.add_argument("--linear_mode", type=str, help='sparse linear mode in FM')
 
+    ## AdaRanker model
+    parser.add_argument("--train_type", type=str, default="Base", choices=["Base", "Ada-Ranker"], help='train type for AdaRanker')
+    parser.add_argument("--freeze", type=int, default=0, help='whether freeze the pretrained model parameters')
+    parser.add_argument("--base_model", type=str, default="GRU", choices=["GRU", "SASRec"], help='base model of AdaRanker')
+
     # MoRec arguments
     parser.add_argument("--enable_morec", type=int, choices=[0,1]) 
     parser.add_argument("--morec_objectives", type=str, nargs='*', help="Objective list.") 

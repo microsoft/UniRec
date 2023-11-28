@@ -3,17 +3,19 @@
 
 #!/bin/bash
 
-# root
-HOME_DIR=$(eval echo ~)
-LOCAL_ROOT='$HOME_DIR/UniRec'
+###############################################################################################
+### Please modify the following variables according to your device and mission requirements ###
+###############################################################################################
+LOCAL_ROOT="$HOME/UniRec"  # path to UniRec
+###############################################################################################
 
+
+# default parameters for local run
 MY_DIR=$LOCAL_ROOT
 ALL_DATA_ROOT="$LOCAL_ROOT/data"
 OUTPUT_ROOT="$LOCAL_ROOT/output"
 
 
-
-# default parameters for local run
 MODEL_NAME='SASRec' # [AvgHist, AttHist, MF, SVDPlusPlus, GRU, SASRec]
 DATA_TYPE='SeqRecDataset'  # BaseDataset SeqRecDataset
 DATASET_NAME="Steam" #"Beauty"   
