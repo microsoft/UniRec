@@ -118,7 +118,7 @@ def get_user_history(user2history, user2history_time, config, default_name):
     return user2history, user2history_time
 
  
-def get_data_loader(config, task, add_history_trans, MyDataSet, file_path, file_name, user2history=None, item2popularity=None, return_graph=False, item2meta=None, align_dist=None):
+def get_data_loader(config, task, add_history_trans, MyDataSet, file_path, file_name, user2history=None, item2popularity=None, return_graph=False, item2meta=None, align_dist=None, user2history_time=None):
     config = copy.deepcopy(config)
     config['data_loader_task'] = task
     config['data_format'] = config['{0}_file_format'.format(task)] 
@@ -142,6 +142,7 @@ def get_data_loader(config, task, add_history_trans, MyDataSet, file_path, file_
     dataset = MyDataSet(config, path=file_path, filename=file_name, transform=transform)  
 
     if add_history_trans is not None:
+        add_history_trans = add_history_trans(user2history, config['history_mask_mode'], user2history_time, config['seq_last'], config['data_format'])
         dataset.add_user_history_transform(add_history_trans)
 
     if return_graph:
@@ -269,7 +270,8 @@ def main(config, accelerator):
     add_history_trans = None
     if dataloader_name in {DatasetType.SeqRecDataset.value, DatasetType.AERecDataset.value}:
         user2history, user2history_time = get_user_history(user2history, user2history_time, config, DATA_TRAIN_NAME)
-        add_history_trans =  general.get_class_instance('AddUserHistory', 'unirec/data')(user2history, config['history_mask_mode'], user2history_time, config['seq_last'])
+        # data_format = config['train_file_format'] 
+        add_history_trans =  general.get_class_instance('AddUserHistory', 'unirec/data')
     if need_user_history(config):
         user2history, user2history_time = get_user_history(user2history, user2history_time, config, DATA_TRAIN_NAME)
     
@@ -307,13 +309,13 @@ def main(config, accelerator):
         train_data = get_data_loader(
             config, 'train', add_history_trans, MyDataSet, file_path, DATA_TRAIN_NAME, 
             user2history=user2history, item2popularity=item2popularity, return_graph=not model.__optimized_by_SGD__,
-            item2meta=item2meta_morec, align_dist=alignment_distribution
+            item2meta=item2meta_morec, align_dist=alignment_distribution, user2history_time=user2history_time
             )
         ## prepare valid data loader
         if model.__optimized_by_SGD__:
             valid_data = get_data_loader(
                 config, 'valid', add_history_trans, MyDataSet, file_path, DATA_VALID_NAME, 
-                user2history=user2history, item2popularity=item2popularity
+                user2history=user2history, item2popularity=item2popularity, user2history_time=user2history_time
                 )
         else:
             valid_data = None
@@ -381,7 +383,7 @@ def main(config, accelerator):
     ## prepare test data loader
     test_data = get_data_loader(
         config, 'test', add_history_trans, MyDataSet, file_path, DATA_TEST_NAME, 
-        user2history=user2history, item2popularity=item2popularity
+        user2history=user2history, item2popularity=item2popularity, user2history_time=user2history_time
         )
 
     trainer.reset_evaluator(test_data.dataset.config['data_format'], config['test_protocol'])

@@ -102,6 +102,8 @@ class BaseDataset(Dataset):
         _type = self.config['data_format']
         if _type == DataFileFormat.T1.value:
             t = ['user_id', 'item_id',]
+        elif _type == DataFileFormat.T1_1.value:
+            t = ['user_id', 'item_id', 'max_len']
         elif _type == DataFileFormat.T2.value:
             t = ['user_id', 'item_id', 'label']
         elif _type == DataFileFormat.T2_1.value:
@@ -154,6 +156,9 @@ class BaseDataset(Dataset):
     def __getitem__(self, index):
         _type = self.config['data_format']
         sample = self.dataset[index] 
+
+        if _type == DataFileFormat.T1_1.value:
+            max_len = sample[2]
         
         if self.transform is not None:
             sample = self.transform(sample)
@@ -187,6 +192,8 @@ class BaseDataset(Dataset):
         if _type == DataFileFormat.T2_1.value:
             session_id = sample[3]
             return_tup = return_tup + (session_id,)
+        elif _type == DataFileFormat.T1_1.value:
+            return_tup = return_tup + (max_len, )
         
         if self.use_features and item_id is not None:
             item_features = self.item2features[item_id] # np.ndarray and int are both supported
