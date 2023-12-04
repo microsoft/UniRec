@@ -248,9 +248,7 @@ def parse_cmd_arguments():
 
     return parsed_results
 
-def prepare_ml100k(arguments):
-    output_name = arguments['output_name']
-    need_max_len = arguments['need_max_len']
+def prepare_ml100k(output_name='ml-100k',need_max_len=0):
     # Download MovieLens-100k
     url = "https://files.grouplens.org/datasets/movielens/ml-100k.zip"
     folder_path = os.path.expanduser("~/.unirec/dataset")
@@ -393,4 +391,6 @@ def prepare_ml100k(arguments):
 if __name__ == "__main__":
     arguments = parse_cmd_arguments()
     print(arguments)
-    prepare_ml100k(arguments)
+    output_name = arguments.get('output_name', 'ml-100k')
+    need_max_len = arguments.get('need_max_len', 0)
+    prepare_ml100k(output_name,need_max_len)
