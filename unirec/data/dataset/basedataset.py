@@ -189,11 +189,11 @@ class BaseDataset(Dataset):
         
         return_tup = (user_id, item_id, label) if user_id is not None else (index_list, value_list, label)
 
-        if _type == DataFileFormat.T2_1.value:
+        if _type == DataFileFormat.T1_1.value:
+            return_tup = return_tup + (max_len, )
+        elif _type == DataFileFormat.T2_1.value:
             session_id = sample[3]
             return_tup = return_tup + (session_id,)
-        elif _type == DataFileFormat.T1_1.value:
-            return_tup = return_tup + (max_len, )
         
         if self.use_features and item_id is not None:
             item_features = self.item2features[item_id] # np.ndarray and int are both supported

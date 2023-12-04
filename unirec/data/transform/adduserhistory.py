@@ -13,13 +13,13 @@ class AddUserHistory(object):
         mask_mode: If the item history is a sequence, we suggest to use autoregressive to avoid use future inforamtion.
                     Otherwise use unorder.
     '''
-    def __init__(self, user2history, mask_mode='unorder', user2history_time=None, seq_last=0, data_type=None): 
+    def __init__(self, user2history, mask_mode='unorder', user2history_time=None, seq_last=0, data_format=None): 
         self.user2history = user2history
         self.user2history_time = user2history_time
         self.empty_history = np.zeros((1,), dtype=np.int32)
         self.mask_mode = mask_mode
         self.seq_last = seq_last
-        self.data_type = data_type
+        self.data_format = data_format
 
     def get_fake_label(self, k):
         if hasattr(self, 'fake_label'):
@@ -55,7 +55,7 @@ class AddUserHistory(object):
         elif self.mask_mode == HistoryMaskMode.Autoregressive.value:
             n = []
             # For format T1_1, sample is: [userid, itemid, label, max_len, ...]
-            if self.data_type == DataFileFormat.T1_1.value:
+            if self.data_format in [DataFileFormat.T1_1.value]:
                 n = sample[2]
                 history = history[:n]
                 history_time = history_time[:n] if self.user2history_time is not None else None
