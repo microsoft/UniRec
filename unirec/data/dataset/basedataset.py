@@ -87,7 +87,9 @@ class BaseDataset(Dataset):
             } 
 
         ## additional columns for some dataformat:
-        if _type == DataFileFormat.T2_1.value:
+        if _type == DataFileFormat.T1_1.value:
+            self.return_key_2_index['max_len'] = len(self.return_key_2_index)
+        elif _type == DataFileFormat.T2_1.value:
             self.return_key_2_index['session_id'] = len(self.return_key_2_index)
         if self.use_features:
             self.return_key_2_index['item_features'] = len(self.return_key_2_index)

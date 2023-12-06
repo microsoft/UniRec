@@ -63,6 +63,7 @@ class ColNames(Enum):
     USER_AND_HISTORY = 'user_id_item_seq'
     INDEX_GROUP = 'index_list'
     VALUE_GROUP = 'value_list'
+    MAX_LEN = 'max_len'
 
 class DatasetType(Enum):
     BaseDataset = 'BaseDataset'

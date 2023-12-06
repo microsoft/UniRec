@@ -45,12 +45,7 @@ class SeqRecDataset(BaseDataset):
             item_seq, item_seq_len, time_seq = self.add_seq_transform((elements[0], elements[1]))
         item_seq = self._padding(item_seq)
         item_seq_len = min(item_seq_len, self.config['max_seq_len'])  
-
-        if _type == DataFileFormat.T1_1.value:
-            # delete max_len as it will not be used next.
-            elements = elements[:3] + elements[4:] 
-        elements = elements + (item_seq, item_seq_len)
-        
+      
         elements = elements + (item_seq, item_seq_len)
         if self.use_features:
             item_seq_features = self.item2features[item_seq]

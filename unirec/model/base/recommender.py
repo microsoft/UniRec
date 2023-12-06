@@ -43,7 +43,7 @@ class BaseRecommender(AbstractRecommender):
         user_e = self.user_embedding(user_id)
         return user_e
     
-    def forward(self, user_id=None, item_id=None, label=None, item_features=None, item_seq=None, item_seq_len=None, item_seq_features=None, time_seq=None, session_id=None, reduction=True, return_loss_only=True):
+    def forward(self, user_id=None, item_id=None, label=None, item_features=None, item_seq=None, item_seq_len=None, item_seq_features=None, time_seq=None, session_id=None, reduction=True, return_loss_only=True, max_len=None):
         if self.loss_type == LossFuncType.FULLSOFTMAX.value and self.training:
             label = item_id
             in_item_id = torch.arange(self.n_items).to(self.device)
