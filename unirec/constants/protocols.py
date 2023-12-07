@@ -13,6 +13,12 @@ class DataFileFormat(Enum):
     # user_id, item_id.  This is the interaction format.
     T1 = 'user-item' 
 
+    # user_id, item_id, max_len. 
+    # max_len is the maximum length of the sequence corresponding to the target interaction.
+    # For example, sequence corresponding to (u, i, max_len) is history_u[:max_len], 
+    # where history_u is the interaction history of user u and i is the target item.
+    T1_1 = 'user-item-max_len'
+
     # user_id, item_id, label
     T2 = 'user-item-label' 
 
@@ -57,6 +63,7 @@ class ColNames(Enum):
     USER_AND_HISTORY = 'user_id_item_seq'
     INDEX_GROUP = 'index_list'
     VALUE_GROUP = 'value_list'
+    MAX_LEN = 'max_len'
 
 class DatasetType(Enum):
     BaseDataset = 'BaseDataset'

@@ -92,7 +92,7 @@ class MultiVAE(BaseRecommender):
         
         return scores
 
-    def forward(self, user_id=None, item_id=None, label=None, item_features=None, item_seq=None, item_seq_len=None, item_seq_features=None, time_seq=None, session_id=None, reduction=True, return_loss_only=True):
+    def forward(self, user_id=None, item_id=None, label=None, item_features=None, item_seq=None, item_seq_len=None, item_seq_features=None, time_seq=None, session_id=None, reduction=True, return_loss_only=True, max_len=None):
         # items_emb = self.item_embedding.weight
         in_item_id = torch.arange(self.n_items).to(self.device)
         in_item_features = torch.tensor(self.item2features, dtype=torch.int32).to(self.device) if self.use_features else None

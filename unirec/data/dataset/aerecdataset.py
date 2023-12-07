@@ -34,7 +34,7 @@ class AERecDataset(SeqRecDataset):
                 _n_rows1 = len(raw_data_pd)
                 self.logger.info('{0} / {1} rows remains.'.format(_n_rows1, _n_rows0))
             
-            if data_format in {DataFileFormat.T1.value, DataFileFormat.T2.value, DataFileFormat.T2_1.value, DataFileFormat.T3.value}:
+            if data_format in {DataFileFormat.T1.value, DataFileFormat.T1_1.value, DataFileFormat.T2.value, DataFileFormat.T2_1.value, DataFileFormat.T3.value}:
                 self.logger.info('Group interactions by user_id.')
                 _n_rows0 = len(raw_data_pd)
                 raw_data_pd = raw_data_pd.groupby(ColNames.USERID.value)[ColNames.ITEMID.value].apply(lambda x:np.array(x)).to_frame().reset_index()

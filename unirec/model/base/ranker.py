@@ -17,7 +17,7 @@ class Ranker(AbstractRecommender):
     def forward_scores(self, item_id=None, item_features=None, item_seq=None, item_seq_len=None, item_seq_features=None):
         raise NotImplementedError
 
-    def forward(self, user_id=None, item_id=None, label=None, item_features=None, item_seq=None, item_seq_len=None, item_seq_features=None, time_seq=None, session_id=None, reduction=True, return_loss_only=True):
+    def forward(self, user_id=None, item_id=None, label=None, item_features=None, item_seq=None, item_seq_len=None, item_seq_features=None, time_seq=None, session_id=None, reduction=True, return_loss_only=True, max_len=None):
         scores = self.forward_scores(item_id, item_features, item_seq, item_seq_len,  item_seq_features)
         if self.SCORE_CLIP > 0:
             scores = torch.clamp(scores, min=-1.0*self.SCORE_CLIP, max=self.SCORE_CLIP) 

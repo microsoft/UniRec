@@ -87,7 +87,9 @@ class BaseDataset(Dataset):
             } 
 
         ## additional columns for some dataformat:
-        if _type == DataFileFormat.T2_1.value:
+        if _type == DataFileFormat.T1_1.value:
+            self.return_key_2_index['max_len'] = len(self.return_key_2_index)
+        elif _type == DataFileFormat.T2_1.value:
             self.return_key_2_index['session_id'] = len(self.return_key_2_index)
         if self.use_features:
             self.return_key_2_index['item_features'] = len(self.return_key_2_index)
@@ -102,6 +104,8 @@ class BaseDataset(Dataset):
         _type = self.config['data_format']
         if _type == DataFileFormat.T1.value:
             t = ['user_id', 'item_id',]
+        elif _type == DataFileFormat.T1_1.value:
+            t = ['user_id', 'item_id', 'max_len']
         elif _type == DataFileFormat.T2.value:
             t = ['user_id', 'item_id', 'label']
         elif _type == DataFileFormat.T2_1.value:
@@ -154,6 +158,9 @@ class BaseDataset(Dataset):
     def __getitem__(self, index):
         _type = self.config['data_format']
         sample = self.dataset[index] 
+
+        if _type == DataFileFormat.T1_1.value:
+            max_len = sample[2]
         
         if self.transform is not None:
             sample = self.transform(sample)
@@ -184,7 +191,9 @@ class BaseDataset(Dataset):
         
         return_tup = (user_id, item_id, label) if user_id is not None else (index_list, value_list, label)
 
-        if _type == DataFileFormat.T2_1.value:
+        if _type == DataFileFormat.T1_1.value:
+            return_tup = return_tup + (max_len, )
+        elif _type == DataFileFormat.T2_1.value:
             session_id = sample[3]
             return_tup = return_tup + (session_id,)
         
