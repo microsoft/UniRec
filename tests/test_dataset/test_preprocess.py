@@ -311,7 +311,7 @@ def test_preprocess_maxlen_data():
 
 def test_preprocess_seq_data():
     ds_name = 'ml-100k-seq'
-    prepare_ml100k(output_name=ds_name,need_max_len=1)
+    prepare_ml100k(output_name=ds_name,need_max_len=0)
     config = copy.deepcopy(CONFIG)
     config['raw_datapath'] = os.path.expanduser("~/.unirec/dataset/ml-100k-seq")
     config['dataset_name'] = ds_name

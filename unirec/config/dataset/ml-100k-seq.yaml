@@ -3,7 +3,7 @@ n_items: 1017
 n_neg_test_from_sampling: 0
 n_neg_train_from_sampling: 0
 n_neg_valid_from_sampling: 0
-n_users: 1017
+n_users: 940
 test_file_format: user-item
 train_file_format: user-item
 user_history_file_format: user-item_seq
