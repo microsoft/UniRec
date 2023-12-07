@@ -291,25 +291,25 @@ def test_preprocess_maxlen_data():
     config['test_file_format'] = 'user-item-max_len'
     config['test_file_col_names'] = "['user_id', 'item_id', 'max_len']"
     process_transaction_dataset(config)
-    assert os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name)), "processed data folder not created sucessfully"
-    assert os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'data.info')), "data.info file not created sucessfully"
-    assert os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'train.ftr')) or \
-        os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'train.pkl')) or \
-        os.path.exists(os.path.join(CONFIG['outpathroot'],ds_name, 'train.tsv')), "train file not created sucessfully"
-    assert os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'valid.ftr')) or \
-        os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'valid.pkl')) or \
-        os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'valid.tsv')), "valid file not created sucessfully"
-    assert os.path.exists(os.path.join(CONFIG['outpathroot'], CONFIG['dataset_name'], 'test.ftr')) or \
-        os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'test.pkl')) or \
-        os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'test.tsv')), "test file not created sucessfully"
-    assert os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'user_history.ftr')) or \
-        os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'user_history.pkl')) or \
-        os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'user_history.tsv')), "user_history file not created sucessfully"
-    if os.path.exists(os.path.join(CONFIG['raw_datapath'], 'item_meta_morec.csv')):
-        shutil.copyfile(os.path.join(CONFIG['raw_datapath'], 'item_meta_morec.csv'),
-                        os.path.join(CONFIG['outpathroot'], ds_name, 'item_meta_morec.csv'))
+    assert os.path.exists(os.path.join(config['outpathroot'], ds_name)), "processed data folder not created sucessfully"
+    assert os.path.exists(os.path.join(config['outpathroot'], ds_name, 'data.info')), "data.info file not created sucessfully"
+    assert os.path.exists(os.path.join(config['outpathroot'], ds_name, 'train.ftr')) or \
+        os.path.exists(os.path.join(config['outpathroot'], ds_name, 'train.pkl')) or \
+        os.path.exists(os.path.join(config['outpathroot'],ds_name, 'train.tsv')), "train file not created sucessfully"
+    assert os.path.exists(os.path.join(config['outpathroot'], ds_name, 'valid.ftr')) or \
+        os.path.exists(os.path.join(config['outpathroot'], ds_name, 'valid.pkl')) or \
+        os.path.exists(os.path.join(config['outpathroot'], ds_name, 'valid.tsv')), "valid file not created sucessfully"
+    assert os.path.exists(os.path.join(config['outpathroot'], ds_name, 'test.ftr')) or \
+        os.path.exists(os.path.join(config['outpathroot'], ds_name, 'test.pkl')) or \
+        os.path.exists(os.path.join(config['outpathroot'], ds_name, 'test.tsv')), "test file not created sucessfully"
+    assert os.path.exists(os.path.join(config['outpathroot'], ds_name, 'user_history.ftr')) or \
+        os.path.exists(os.path.join(config['outpathroot'], ds_name, 'user_history.pkl')) or \
+        os.path.exists(os.path.join(config['outpathroot'], ds_name, 'user_history.tsv')), "user_history file not created sucessfully"
+    if os.path.exists(os.path.join(config['raw_datapath'], 'item_meta_morec.csv')):
+        shutil.copyfile(os.path.join(config['raw_datapath'], 'item_meta_morec.csv'),
+                        os.path.join(config['outpathroot'], ds_name, 'item_meta_morec.csv'))
 
-def test_preprocess_maxlen_data():
+def test_preprocess_seq_data():
     ds_name = 'ml-100k-seq'
     prepare_ml100k(output_name=ds_name,need_max_len=1)
     config = copy.deepcopy(CONFIG)
@@ -317,23 +317,23 @@ def test_preprocess_maxlen_data():
     config['dataset_name'] = ds_name
     config['data_type'] = 'SeqRecDataset'
     process_transaction_dataset(config)
-    assert os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name)), "processed data folder not created sucessfully"
-    assert os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'data.info')), "data.info file not created sucessfully"
-    assert os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'train.ftr')) or \
-        os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'train.pkl')) or \
-        os.path.exists(os.path.join(CONFIG['outpathroot'],ds_name, 'train.tsv')), "train file not created sucessfully"
-    assert os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'valid.ftr')) or \
-        os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'valid.pkl')) or \
-        os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'valid.tsv')), "valid file not created sucessfully"
-    assert os.path.exists(os.path.join(CONFIG['outpathroot'], CONFIG['dataset_name'], 'test.ftr')) or \
-        os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'test.pkl')) or \
-        os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'test.tsv')), "test file not created sucessfully"
-    assert os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'user_history.ftr')) or \
-        os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'user_history.pkl')) or \
-        os.path.exists(os.path.join(CONFIG['outpathroot'], ds_name, 'user_history.tsv')), "user_history file not created sucessfully"
-    if os.path.exists(os.path.join(CONFIG['raw_datapath'], 'item_meta_morec.csv')):
-        shutil.copyfile(os.path.join(CONFIG['raw_datapath'], 'item_meta_morec.csv'),
-                        os.path.join(CONFIG['outpathroot'], ds_name, 'item_meta_morec.csv'))
+    assert os.path.exists(os.path.join(config['outpathroot'], ds_name)), "processed data folder not created sucessfully"
+    assert os.path.exists(os.path.join(config['outpathroot'], ds_name, 'data.info')), "data.info file not created sucessfully"
+    assert os.path.exists(os.path.join(config['outpathroot'], ds_name, 'train.ftr')) or \
+        os.path.exists(os.path.join(config['outpathroot'], ds_name, 'train.pkl')) or \
+        os.path.exists(os.path.join(config['outpathroot'],ds_name, 'train.tsv')), "train file not created sucessfully"
+    assert os.path.exists(os.path.join(config['outpathroot'], ds_name, 'valid.ftr')) or \
+        os.path.exists(os.path.join(config['outpathroot'], ds_name, 'valid.pkl')) or \
+        os.path.exists(os.path.join(config['outpathroot'], ds_name, 'valid.tsv')), "valid file not created sucessfully"
+    assert os.path.exists(os.path.join(config['outpathroot'], ds_name, 'test.ftr')) or \
+        os.path.exists(os.path.join(config['outpathroot'], ds_name, 'test.pkl')) or \
+        os.path.exists(os.path.join(config['outpathroot'], ds_name, 'test.tsv')), "test file not created sucessfully"
+    assert os.path.exists(os.path.join(config['outpathroot'], ds_name, 'user_history.ftr')) or \
+        os.path.exists(os.path.join(config['outpathroot'], ds_name, 'user_history.pkl')) or \
+        os.path.exists(os.path.join(config['outpathroot'], ds_name, 'user_history.tsv')), "user_history file not created sucessfully"
+    if os.path.exists(os.path.join(config['raw_datapath'], 'item_meta_morec.csv')):
+        shutil.copyfile(os.path.join(config['raw_datapath'], 'item_meta_morec.csv'),
+                        os.path.join(config['outpathroot'], ds_name, 'item_meta_morec.csv'))
 
 if __name__ == "__main__":
     pytest.main(["test_preprocess.py", "-s"])
