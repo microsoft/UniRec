@@ -128,7 +128,7 @@ class AbstractRecommender(nn.Module):
         self.device = config['device']
         self.loss_type = config.get('loss_type', 'bce')
         self.embedding_size = config.get('embedding_size', 0)
-        self.hidden_size = self.embedding_size
+        self.hidden_size = config.get('hidden_size', 0)
         self.dropout_prob = config.get('dropout_prob', 0.0)
         self.use_pre_item_emb = config.get('use_pre_item_emb', 0)
         self.use_text_emb = config.get('use_text_emb', 0)
