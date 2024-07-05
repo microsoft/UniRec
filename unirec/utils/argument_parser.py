@@ -106,7 +106,7 @@ def parse_cmd_arguments():
     parser.add_argument("--history_mask_mode", type=str)
     parser.add_argument("--has_user_bias", type=int)
     parser.add_argument("--has_item_bias", type=int)
-    parser.add_argument("--hidden_size", type=int)  # actually no use now
+    parser.add_argument("--hidden_size", type=int)  # in GRU
     parser.add_argument("--inner_size", type=int)
     parser.add_argument("--edge_norm", type=str, choices=['none', 'sqrt_degree']) 
     parser.add_argument("--loss_type", type=str)

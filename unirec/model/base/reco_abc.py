@@ -128,7 +128,7 @@ class AbstractRecommender(nn.Module):
         self.device = config['device']
         self.loss_type = config.get('loss_type', 'bce')
         self.embedding_size = config.get('embedding_size', 0)
-        self.hidden_size = self.embedding_size
+        self.hidden_size = config.get('hidden_size', self.embedding_size)
         self.dropout_prob = config.get('dropout_prob', 0.0)
         self.use_pre_item_emb = config.get('use_pre_item_emb', 0)
         self.use_text_emb = config.get('use_text_emb', 0)
@@ -136,7 +136,7 @@ class AbstractRecommender(nn.Module):
         self.init_method = config.get('init_method', 'normal')
         self.use_features = config.get('use_features', 0)
         if self.use_features:
-            self.feature_emb_size = self.embedding_size #config.get('feature_emb_size', 40)
+            self.feature_emb_size = self.embedding_size
             self.features_shape = eval(config.get('features_shape', '[]'))
             self.item2features = file_io.load_features(self.config['features_filepath'], self.n_items, len(self.features_shape))
         if 'group_size' in config:
@@ -175,9 +175,9 @@ class AbstractRecommender(nn.Module):
             self.text_embedding = nn.Embedding(self.n_items, self.text_emb_size, padding_idx=0)
             self.text_embedding.weight.requires_grad_(False)
             self.text_mlp = nn.Sequential(
-                    nn.Linear(self.text_emb_size, 2*self.hidden_size),
+                    nn.Linear(self.text_emb_size, 2*self.embedding_size),
                     nn.GELU(),
-                    nn.Linear(2*self.hidden_size, self.hidden_size),
+                    nn.Linear(2*self.embedding_size, self.embedding_size),
                 )
         if self.use_features:
             # we merge all features into one embedding layer, for example, if we have 2 features, and each feature has 10 categories, 
