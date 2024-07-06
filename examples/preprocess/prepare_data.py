@@ -90,7 +90,9 @@ def convert_to_pandas_pkl_file(
         names=None, header_line_cnt=0,
         data_format=None,
         sep=' ',
-        save_as_behavior_sequence=False
+        save_as_behavior_sequence=False,
+        data_name = None,
+        data_type = None
     ):    
     # dtypes = {'user_id':int, 'item_id':int}     
     
@@ -116,6 +118,12 @@ def convert_to_pandas_pkl_file(
     
      
     ### additional data transformation in dataframe
+    # drop the first interaction in each sequence.
+    # suppose only leave-one-out.
+    if data_name == 'train' and data_type in [DatasetType.SeqRecDataset.value]:  
+        data = data.groupby('user_id').tail(-1).reset_index()
+
+    
     if data_format in [DataFileFormat.T4.value]:
         data.item_id_list = data.item_id_list.apply(lambda t:np.array([int(a) for a in t.split(',')]))
         data.label_list = data.label_list.apply(lambda t:np.array([int(a) for a in t.split(',')]))
@@ -132,7 +140,7 @@ def convert_to_pandas_pkl_file(
         data_format = DataFileFormat.T5.value 
 
     if index_by_zero:
-        if data_format in [DataFileFormat.T1.value, DataFileFormat.T2.value, DataFileFormat.T2_1.value, DataFileFormat.T3.value]:
+        if data_format in [DataFileFormat.T1.value, DataFileFormat.T1_1.value, DataFileFormat.T2.value, DataFileFormat.T2_1.value, DataFileFormat.T3.value]:
             data[['user_id', 'item_id']] += 1  
         elif data_format in [DataFileFormat.T4.value]:
             data[['user_id', 'item_id_list']] += 1  
@@ -150,7 +158,7 @@ def convert_to_pandas_pkl_file(
     else:
         max_user_id = data['user_id'].max()
     max_item_id = 0
-    if data_format in [DataFileFormat.T1.value, DataFileFormat.T2.value, DataFileFormat.T2_1.value, DataFileFormat.T3.value]:
+    if data_format in [DataFileFormat.T1.value, DataFileFormat.T1_1.value, DataFileFormat.T2.value, DataFileFormat.T2_1.value, DataFileFormat.T3.value]:
         max_item_id = data['item_id'].max()
     elif data_format in [DataFileFormat.T7.value]:
         # max_item_id = data['sparse'].apply(lambda arr: arr[1:].max()).max() - max_user_id
@@ -234,7 +242,8 @@ def parse_cmd_arguments():
     parser.add_argument("--raw_datapath", type=str) 
     parser.add_argument("--dataset_name", type=str)
     parser.add_argument("--outpathroot", type=str)
-    parser.add_argument("--example_yaml_file", type=str)  
+    parser.add_argument("--example_yaml_file", type=str)
+    parser.add_argument("--data_type", type=str)      
 
     parser.add_argument("--sample_negative_in_processing", type=int)   
     parser.add_argument("--index_by_zero", type=int, default=0) 
@@ -290,6 +299,7 @@ def process_transaction_dataset(arguments):
     dataset_name = arguments['dataset_name']
     dataset_outpathroot = arguments['outpathroot']
     example_yaml_file = arguments['example_yaml_file']
+    data_type = arguments.get('data_type', 'BaseDataset')
     
 
     index_by_zero = arguments.get('index_by_zero', 0)
@@ -318,7 +328,9 @@ def process_transaction_dataset(arguments):
             header_line_cnt=header_line_cnt,
             data_format=data_format,
             sep=sep,
-            save_as_behavior_sequence=False
+            save_as_behavior_sequence=False,
+            data_name=data_name,
+            data_type=data_type
         )
         
     

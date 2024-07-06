@@ -71,6 +71,7 @@ EXPECTED_METRICS = {
                         'SASRec_ccl': {'hit@5': 0.02449, 'ndcg@5': 0.01318},
                         'SASRec_fullsoftmax': {'hit@5': 0.04792, 'ndcg@5': 0.03155},
                         'SASRec_with_text_emb': {'hit@5': 0.04686, 'ndcg@5': 0.03219},
+                        'SASRec_with_max_len': {'hit@5': 0.04686, 'ndcg@5': 0.03122}
                     }
 
 
@@ -148,6 +149,39 @@ def test_text_emb_pipeline(data, models, expected_values):
                 break
     assert len(failed_models)==0, f"performance of [{', '.join(failed_models)}] not correct."
 
+@pytest.mark.parametrize(
+        "data, models, expected_values",
+        [
+            (
+                "ml-100k-max_len",
+                ["SASRec"],
+                EXPECTED_METRICS
+            )
+        ]
+)
+def test_max_len_pipeline(data, models, expected_values):
+    all_result = {}
+    # finish all training first for following evaluation and infer test
+    for model in models:
+        config = copy.deepcopy(GLOBAL_CONF)
+        config['task'] = 'train'
+        config['dataset_path'] = os.path.join(config['dataset_path'], data)
+        config['dataset'] = data
+        config['model'] = model
+        config['output_path'] = os.path.join(UNIREC_PATH, f'tests/.temp/output/{data}/{model}')
+        result = main.run(config)
+        all_result[f"{model}_with_max_len"] = result
+
+    # check the performance
+    failed_models = []
+    for model in models:
+        exp_value = expected_values[f"{model}_with_max_len"]
+        result = all_result[f"{model}_with_max_len"]
+        for k, v in exp_value.items():
+            if not result[k] == pytest.approx(v, rel=TOL, abs=ABS_TOL):
+                failed_models.append(f"{model}_with_max_len")
+                break
+    assert len(failed_models)==0, f"performance of [{', '.join(failed_models)}] not correct."
 
 @pytest.mark.parametrize(
         "data, model, loss_types, expected_values",

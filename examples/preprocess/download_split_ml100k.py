@@ -5,6 +5,7 @@ import os
 import json
 import requests
 import zipfile
+import argparse
 from tqdm import tqdm
 import pandas as pd
 import numpy as np
@@ -230,8 +231,24 @@ def merge_category(data, min_item_in_cate=50):
 
     return cate2idx, item2cate, num_cates
 
+def parse_cmd_arguments():
+    parser = argparse.ArgumentParser() 
+     
+    parser.add_argument("--output_name", type=str, default="ml-100k") 
+    parser.add_argument("--need_max_len", type=int, default=0)
 
-def prepare_ml100k():
+    (args, unknown) = parser.parse_known_args()  
+    # print(args)
+    parsed_results = {}
+    for arg in sorted(vars(args)):
+        value = getattr(args, arg)
+        if value is not None and value not in ['none', 'None']:
+            parsed_results[arg] = value
+    
+
+    return parsed_results
+
+def prepare_ml100k(output_name='ml-100k',need_max_len=0):
     # Download MovieLens-100k
     url = "https://files.grouplens.org/datasets/movielens/ml-100k.zip"
     folder_path = os.path.expanduser("~/.unirec/dataset")
@@ -250,7 +267,7 @@ def prepare_ml100k():
     item_info_path = os.path.join(extract_path, "ml-100k", "u.item")
     # _path = os.path.dirname(__file__)
     # dataset_folder = os.path.abspath(os.path.join(_path, "../../data/"))
-    outpath = os.path.join(folder_path, "ml-100k")
+    outpath = os.path.join(folder_path, output_name)
     if not os.path.exists(outpath):
         os.makedirs(outpath)
 
@@ -307,6 +324,12 @@ def prepare_ml100k():
     full_user_history['item_seq'] = full_user_history[item_col_name].apply(lambda x: ",".join(map(str,x)))
     full_user_history = full_user_history[[user_col_name, 'item_seq']]
     full_user_history.to_csv(os.path.join(outpath, 'full_user_history.csv'), index=False, sep='\t')
+    
+    # max_len is the maximum length of the sequence corresponding to the target interaction.
+    # For example, sequence corresponding to (u, i, max_len) is history_u[:max_len], 
+    # where history_u is the interaction history of user u and i is the target item. 
+    if need_max_len:
+        data['max_len'] = data.groupby(user_col_name).cumcount()
 
     df_train0, df_test = split_train_test_set(data, col_name=user_col_name, col_names_2_return=None, seed=seed)
     df_train, df_valid = split_train_test_set(df_train0, col_name=user_col_name, col_names_2_return=None, seed=seed)
@@ -315,10 +338,15 @@ def prepare_ml100k():
     user_history = df_train0.groupby(by=user_col_name, as_index=False).agg(list).reset_index(drop=True)
     user_history['item_seq'] = user_history[item_col_name].apply(lambda x: ",".join(map(str,x)))
     user_history = user_history[[user_col_name, 'item_seq']]
+  
+    columns_to_keep = [user_col_name, item_col_name]  
+    if need_max_len:  
+        columns_to_keep.append('max_len')
 
-    df_train = df_train[[user_col_name, item_col_name]]
-    df_valid = df_valid[[user_col_name, item_col_name]]
-    df_test = df_test[[user_col_name, item_col_name]]
+    df_train = df_train[columns_to_keep]  
+    df_test = df_test[columns_to_keep]  
+    df_valid = df_valid[columns_to_keep]
+
     df_train.to_csv(os.path.join(outpath, 'train.csv'), index=False, sep='\t')
     df_valid.to_csv(os.path.join(outpath, 'valid.csv'), index=False, sep='\t')
     df_test.to_csv(os.path.join(outpath, 'test.csv'), index=False, sep='\t')
@@ -361,4 +389,8 @@ def prepare_ml100k():
     return True
 
 if __name__ == "__main__":
-    prepare_ml100k()
+    arguments = parse_cmd_arguments()
+    print(arguments)
+    output_name = arguments.get('output_name', 'ml-100k')
+    need_max_len = arguments.get('need_max_len', 0)
+    prepare_ml100k(output_name,need_max_len)
