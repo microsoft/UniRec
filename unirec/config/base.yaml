@@ -27,7 +27,6 @@ load_pretrained_model: False
 
 # common model parameters
 embedding_size: 32
-hidden_size: 128
 inner_size: 128
 dropout_prob: 0.0
 

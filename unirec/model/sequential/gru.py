@@ -12,7 +12,7 @@ class GRU(SeqRecBase):
 
     def _define_model_layers(self):
         # gru
-        self.hidden_size = self.config['hidden_size']
+        # self.hidden_size = self.config['hidden_size']
         self.num_layers = 1
         self.emb_dropout = nn.Dropout(self.dropout_prob)
         self.gru_layers = nn.GRU(

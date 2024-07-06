@@ -45,7 +45,7 @@ install_requires = [
     "pandas>=1.5.1", 
     "pyarrow>=10.0.0", 
     "scikit-learn>=1.1.3", 
-    "scipy>=1.9.3", 
+    "scipy>=1.9.3, <=1.12.1", 
     "setproctitle>=1.3.2", 
     "swifter>=1.3.4", 
     "tqdm>=4.64.1", 
@@ -54,7 +54,8 @@ install_requires = [
     "cvxpy>=1.3.1", 
     "onnxruntime>=1.15.1", 
     "accelerate>=0.20.3",
-    "pytest>=7.3.1"
+    "pytest>=7.3.1",
+    "gensim>=4.3.2"
 ]
 
 
